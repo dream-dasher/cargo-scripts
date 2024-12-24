@@ -1,5 +1,4 @@
 #!/usr/bin/env cargo +nightly -Zscript
-
 ---
 [dependencies]
 egui = "0.30.0"
