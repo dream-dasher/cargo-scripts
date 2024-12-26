@@ -23,7 +23,7 @@ struct Args {
     opt_runner: Option<String>,
 }
 
-const DEFAULT_ARGUMENT: &str = "Hi there, from default string.";
+const DEFAULT_ARGUMENT: &str = "---Hi there, from default string.---\n";
 const DEFAULT_RUNNER: &str = "echo";
 
 fn main() -> core::result::Result<(), Box<dyn core::error::Error>>{
@@ -31,15 +31,19 @@ fn main() -> core::result::Result<(), Box<dyn core::error::Error>>{
     let runner = args.opt_runner.unwrap_or(DEFAULT_RUNNER.to_string());
     let argument = args.opt_argument.unwrap_or(DEFAULT_ARGUMENT.to_string());
 
-    println!("Argument: {}", argument);
-    println!("Runner: {}", runner);
+    println!("rust: Argument: {}", argument);
+    println!("rust: Runner: {}", runner);
+    println!();
 
         let proc_handle = Command::new(runner)
             .arg(argument)
             .stdin(Stdio::null())
-            .stdout(Stdio::piped())
+            // .stdout(Stdio::piped())
+            .stdout(Stdio::inherit())
             .stderr(Stdio::piped())
             .spawn()?;
+
+        std::thread::sleep(std::time::Duration::from_secs(1));
         let out = proc_handle.wait_with_output()?;
         println!("Spawned process output:\n{:#?}", out);
 
