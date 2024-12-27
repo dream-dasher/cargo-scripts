@@ -14,7 +14,7 @@ clap = { version = "4.5", features = ["derive"] }
 use clap::Parser;
 use std::process::{Command, Stdio};
 
-/// Use with `BROWSWER` envar
+/// Use with `BROWSER` envar
 #[derive(Parser, Debug)]
 #[command(version, about)]
 struct Args {

@@ -9,7 +9,7 @@
 //! echo $PATH | sd : '\n' | xargs -I_ fd '.*' _ -t f | sort
 //! ```
 //!
-//! isues with BROWSER, which gives a value to `Command::new(_)`, which doesn't jive nicely
+//! issues with BROWSER, which gives a value to `Command::new(_)`, which doesn't jive nicely
 //! with mac systems (.app, won't work.)  .../Content/Macos/firefox  sort of works.
 //! Also, samply just gobbles up the error.
 //! ```zsh
