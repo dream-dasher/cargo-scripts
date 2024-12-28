@@ -59,7 +59,7 @@ rust-meta-info:
 
 # Watch file and run when it changes. (Useful to get diagnostics.)
 watch file:
-    watchexec --filter {{file}}.rs ./{{file}}.rs
+    watchexec --filter {{file}}.rs 'clear; ./{{file}}.rs'
 # ######################################################################## #
 
 # Print reminder: how to set env vars that propagate to child shells.
