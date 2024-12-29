@@ -32,13 +32,13 @@ cargo-script file command *args:
 # New script, with executable user privileges
 [group('create')]
 new name:
-    cat _template-script-basic.rs | sd '\{\{sd_me:(.*?)\}\}' '{{name}}' > {{name}}.rs
+    cat _template-script-basic_rs | sd '\{\{sd_me:(.*?)\}\}' '{{name}}' > {{name}}.rs
     chmod u+x {{name}}.rs
 
 # New script, with executable user privileges
 [group('create')]
 new-clap name:
-    cat _template-script-clap.rs | sd '\{\{sd_me:(.*?)\}\}' '{{name}}' > {{name}}.rs
+    cat _template-script-clap_rs | sd '\{\{sd_me:(.*?)\}\}' '{{name}}' > {{name}}.rs
     chmod u+x {{name}}.rs
 
 # Linting, formatting, typo checking, etc.
