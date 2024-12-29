@@ -53,8 +53,9 @@ new-clap name:
 
 # Run performance analysis on a package.
 perf-script file *args:
-    hyperfine './{{file}} {{args}}' --warmup=3 --shell=none;
-    samply record --iteration-count=3 ./{{file}} {{args}};
+    hyperfine './{{file}}.rs {{args}}' --warmup=3 --shell=none;
+    @echo 'Not run: {{GRN}}samply{{NC}} {{PRP}}record --iteration-count=3 ./{{file}}.rs {{args}};{{NC}}'
+    @echo 'samply would respond: "{{BRN}}Profiling failed: Could not obtain the root task.{{NC}}"'
 
 # Info about Rust-Compiler, Rust-Analyzer, Cargo-Clippy, and Rust-Updater.
 rust-meta-info:
