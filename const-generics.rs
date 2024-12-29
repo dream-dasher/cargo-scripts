@@ -13,7 +13,6 @@
 //! - i8, i16, i32, i64, i128, isize, 
 //! - char
 //! - bool
-//!
 
 use std::fmt::Display;
 const DIST_FROM_0: usize = 6;
