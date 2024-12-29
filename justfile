@@ -94,9 +94,21 @@ watch-noisy-run file:
 
 # ######################################################################## #
 
-# Print reminder: how to set env vars that propagate to child shells.
-_remind-setenv:
-    @ echo '{{GRN}}set -a{{NC}}; {{GRN}}source {{BLU}}.env{{NC}}; {{GRN}}set +a{{NC}}'
+# Count all `{{_}}` vs `{{pat_}}`, show diff
+[group('template_check')]
+_bracket-diff pat_prefix='sd_me:' file_globs='_template*':
+    @echo "{{{{"{{pat_prefix}}".*}}:"
+    @rg '\{\{''{{pat_prefix}}''.*\}\}' {{file_globs}} | wc -l
+    @echo "{{{{".*"}}:"
+    @rg '\{\{.*\}\}' {{file_globs}} | wc -l
+    @echo "Difference:"
+    @-rg '\{\{.*\}\}' {{file_globs}} | rg {{pat_prefix}} --invert-match | uniq -c
+
+# Show contents of `{{pat_}}`
+[group('template_check')]
+_bracket-show pat_prefix='sd_me:' file_globs='_template*':
+    @echo '{{{{'{{pat_prefix}}'_}} in files {{file_globs}}:'
+    @rg '\{\{''{{pat_prefix}}''.*\}\}' {{file_globs}} | sd '.*\{\{''{{pat_prefix}}''(.*)\}\}.*' '$1' | sort | uniq -c
 
 # ######################################################################## #
 
