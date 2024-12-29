@@ -18,61 +18,78 @@ CYN := '\033[0;36m' # Cyan
 BLU := '\033[0;34m' # Blue
 GRN := '\033[0;32m' # Green
 PRP := '\033[0;35m' # Purple
+RED := '\033[0;31m' # Red
+YLW := '\033[0;33m' # Yellow
 BRN := '\033[0;33m' # Brown
 
 # Default, lists commands.
 _default:
         @just --list --unsorted
 
-
-# Runs cargo command on a script file. (note: not all commands available)
+# Runs cargo command on a script file.
 cargo-script file command *args:
     cargo +nightly {{command}} {{args}} --manifest-path {{file}}.rs -Zscript
 
-# Linting, formatting, typo checking, etc. (may be excessive for the format)
-check file:
-    just cargo-script {{file}} check
-    just cargo-script {{file}} clippy
-    just cargo-script {{file}} test
-    typos ./{{file}}.rs
-
-# Show docs.
-docs:
-    rustup doc
-    rustup doc --std
-
 # New script, with executable user privileges
+[group('create')]
 new name:
     cat _template-script-basic.rs > {{name}}.rs
     chmod u+x {{name}}.rs
 
 # New script, with executable user privileges
+[group('create')]
 new-clap name:
     cat _template-script-clap.rs > {{name}}.rs
     chmod u+x {{name}}.rs
 
+# Linting, formatting, typo checking, etc.
+[group('general')]
+check file:
+    just cargo-script {{file}} check --all-targets --all-features
+    just cargo-script {{file}} clippy --all-targets --all-features
+    typos ./{{file}}.rs
+
+# Show general use docs.
+[group('general')]
+docs-gen:
+    rustup doc
+    rustup doc --std
+
+# Show docs for a script.
+[group('general')]
+docs file:
+    just cargo-script {{file}} doc --open --document-private-items --all-features
+
 # Run performance analysis on a package.
+[group('general')]
 perf-script file *args:
     hyperfine './{{file}}.rs {{args}}' --warmup=3 --shell=none;
     @echo 'Not run: {{GRN}}samply{{NC}} {{PRP}}record --iteration-count=3 ./{{file}}.rs {{args}};{{NC}}'
     @echo 'samply would respond: "{{BRN}}Profiling failed: Could not obtain the root task.{{NC}}"'
 
 # Info about Rust-Compiler, Rust-Analyzer, Cargo-Clippy, and Rust-Updater.
-rust-meta-info:
+_rust-meta-info:
     rustc --version
     rust-analyzer --version
     cargo-clippy --version
     rustup --version
 
 # Run a file when it changes.
+[group('watch')]
 watch file:
     watchexec --filter {{file}}.rs 'clear; ./{{file}}.rs'
 
+[group('watch')]
+watch-check file:
+    watchexec --filter {{file}}.rs 'clear; just cargo-script {{file}} check'
+
 # Lint a file when it changes. (Can be quite noisy.)
+[group('watch')]
 watch-noisy-check file:
     watchexec --filter {{file}}.rs 'clear; just check {{file}}'
 
 # Lint then run a file when it changes.
+[group('watch')]
 watch-noisy-run file:
     watchexec --filter {{file}}.rs 'clear; just check {{file}}; ./{{file}}.rs'
 
