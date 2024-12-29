@@ -2,8 +2,9 @@
 
 # Convenience Variables.
 # rust vars
-RUST_LOG:= 'debug'
-RUST_BACKTRACE:= '1'
+RUST_LOG := 'debug'
+RUST_BACKTRACE := '1'
+NO_WARN := '-Awarnings'
 # just path vars
 HOME_DIR := env_var('HOME')
 LOCAL_ROOT := justfile_directory()
@@ -25,27 +26,43 @@ BRN := '\033[0;33m' # Brown
 _default:
         @just --list --unsorted
 
-# Runs cargo command on a script file.
-cargo-script file command *args:
+alias cs := cargo-script
+alias csa := cargo-script-all
+
+# Cargo _ on script file.
+cargo-script command file *args:
     cargo +nightly {{command}} {{args}} --manifest-path {{file}}.rs -Zscript
+
+# Cargo _ on ALL `.rs` files at current directory level.
+cargo-script-all command *args:
+    fd . --extension rs --max-depth 1                                 \
+        | xargs -I _                                                  \
+        cargo +nightly {{command}} {{args}} --manifest-path _ -Zscript;
 
 # New script, with executable user privileges
 [group('create')]
 new name:
-    cat _template-script-basic_rs | sd '\{\{sd_me:(.*?)\}\}' '{{name}}' > {{name}}.rs
+    cat _template-script-basic_rs             \
+        | sd '\{\{sd_me:(.*?)\}\}' '{{name}}' \
+        > {{name}}.rs                         ;
     chmod u+x {{name}}.rs
 
 # New script, with executable user privileges
 [group('create')]
 new-clap name:
-    cat _template-script-clap_rs | sd '\{\{sd_me:(.*?)\}\}' '{{name}}' > {{name}}.rs
+    cat _template-script-clap_rs              \
+        | sd '\{\{sd_me:(.*?)\}\}' '{{name}}' \
+        > {{name}}.rs                         ;
     chmod u+x {{name}}.rs
 
 # Linting, formatting, typo checking, etc.
 [group('general')]
 check file:
-    just cargo-script {{file}} check --all-targets --all-features
-    just cargo-script {{file}} clippy --all-targets --all-features
+    @echo '-- clippy @ {{file}} --'
+    just cs clippy {{file}} --all-targets --all-features
+    @echo '-- tests @ {{file}} --'
+    RUSTFLAGS={{NO_WARN}} just cs test {{file}} --all-targets --all-features --quiet
+    @echo '-- typos @ {{file}} --'
     typos ./{{file}}.rs
 
 # Show general use docs.
@@ -57,7 +74,7 @@ docs-gen:
 # Show docs for a script.
 [group('general')]
 docs file:
-    just cargo-script {{file}} doc --open --document-private-items --all-features
+    just cs doc {{file}} --open --document-private-items --all-features
 
 # Run performance analysis on a package.
 [group('general')]
@@ -66,6 +83,32 @@ perf-script file *args:
     @echo 'Not run: {{GRN}}samply{{NC}} {{PRP}}record --iteration-count=3 ./{{file}}.rs {{args}};{{NC}}'
     @echo 'samply would respond: "{{BRN}}Profiling failed: Could not obtain the root task.{{NC}}"'
 
+# Run a file when it changes.
+[group('watch')]
+watch file:
+    watchexec --filter {{file}}.rs \
+        'clear; ./{{file}}.rs'     ;
+
+# Run a file, without warnings, when it changes.
+[group('watch')]
+watch-quiet file:
+    watchexec --filter {{file}}.rs                  \
+        'clear; RUSTFLAGS={{NO_WARN}} ./{{file}}.rs';
+
+# Lint & test a file when it changes.
+[group('watch')]
+watch-check file:
+    watchexec --filter {{file}}.rs \
+        'clear; just check {{file}}'
+
+# Lint & test then run a file when it changes.
+[group('watch')]
+watch-check-run file:
+    watchexec --filter {{file}}.rs          \
+        'clear; just check {{file}};        \
+        echo '-- run ./{{file}}.rs --';     \
+        RUSTFLAGS={{NO_WARN}} ./{{file}}.rs';
+
 # Info about Rust-Compiler, Rust-Analyzer, Cargo-Clippy, and Rust-Updater.
 _rust-meta-info:
     rustc --version
@@ -73,42 +116,30 @@ _rust-meta-info:
     cargo-clippy --version
     rustup --version
 
-# Run a file when it changes.
-[group('watch')]
-watch file:
-    watchexec --filter {{file}}.rs 'clear; ./{{file}}.rs'
-
-[group('watch')]
-watch-check file:
-    watchexec --filter {{file}}.rs 'clear; just cargo-script {{file}} check'
-
-# Lint a file when it changes. (Can be quite noisy.)
-[group('watch')]
-watch-noisy-check file:
-    watchexec --filter {{file}}.rs 'clear; just check {{file}}'
-
-# Lint then run a file when it changes.
-[group('watch')]
-watch-noisy-run file:
-    watchexec --filter {{file}}.rs 'clear; just check {{file}}; ./{{file}}.rs'
-
 # ######################################################################## #
 
 # Count all `{{_}}` vs `{{pat_}}`, show diff
 [group('template_check')]
 _bracket-diff pat_prefix='sd_me:' file_globs='_template*':
     @echo "{{{{"{{pat_prefix}}".*}}:"
-    @rg '\{\{''{{pat_prefix}}''.*\}\}' {{file_globs}} | wc -l
+    @rg '\{\{''{{pat_prefix}}''.*\}\}' {{file_globs}} \
+        | wc -l                                       ;
     @echo "{{{{".*"}}:"
-    @rg '\{\{.*\}\}' {{file_globs}} | wc -l
+    @rg '\{\{.*\}\}' {{file_globs}} \
+        | wc -l                     ;
     @echo "Difference:"
-    @-rg '\{\{.*\}\}' {{file_globs}} | rg {{pat_prefix}} --invert-match | uniq -c
+    @-rg '\{\{.*\}\}' {{file_globs}}       \
+        | rg {{pat_prefix}} --invert-match \
+        | uniq -c                          ;
 
 # Show contents of `{{pat_}}`
 [group('template_check')]
 _bracket-show pat_prefix='sd_me:' file_globs='_template*':
     @echo '{{{{'{{pat_prefix}}'_}} in files {{file_globs}}:'
-    @rg '\{\{''{{pat_prefix}}''.*\}\}' {{file_globs}} | sd '.*\{\{''{{pat_prefix}}''(.*)\}\}.*' '$1' | sort | uniq -c
+    @rg '\{\{''{{pat_prefix}}''.*\}\}' {{file_globs}}  \
+        | sd '.*\{\{''{{pat_prefix}}''(.*)\}\}.*' '$1' \
+        | sort                                         \
+        | uniq -c                                      ;
 
 # ######################################################################## #
 
