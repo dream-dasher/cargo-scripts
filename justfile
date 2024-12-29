@@ -25,10 +25,16 @@ _default:
         @just --list --unsorted
 
 
-# Linting, formatting, typo checking, etc.
-check:
-    typos
-    committed
+# Runs cargo command on a script file. (note: not all commands available)
+cargo-script file command *args:
+    cargo +nightly {{command}} {{args}} --manifest-path {{file}}.rs -Zscript
+
+# Linting, formatting, typo checking, etc. (may be excessive for the format)
+check file:
+    just cargo-script {{file}} check
+    just cargo-script {{file}} clippy
+    just cargo-script {{file}} test
+    typos ./{{file}}.rs
 
 # Show docs.
 docs:
@@ -57,9 +63,18 @@ rust-meta-info:
     cargo-clippy --version
     rustup --version
 
-# Watch file and run when it changes. (Useful to get diagnostics.)
+# Run a file when it changes.
 watch file:
     watchexec --filter {{file}}.rs 'clear; ./{{file}}.rs'
+
+# Lint a file when it changes. (Can be quite noisy.)
+watch-noisy-check file:
+    watchexec --filter {{file}}.rs 'clear; just check {{file}}'
+
+# Lint then run a file when it changes.
+watch-noisy-run file:
+    watchexec --filter {{file}}.rs 'clear; just check {{file}}; ./{{file}}.rs'
+
 # ######################################################################## #
 
 # Print reminder: how to set env vars that propagate to child shells.
