@@ -1,4 +1,4 @@
-#!/usr/bin/env cargo +nightly -Zscript
+#!/usr/bin/env -S cargo +nightly -Zscript
 ---
 [dependencies]
 opener = "0.7.2"
