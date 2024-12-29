@@ -1,6 +1,6 @@
 # Justfile (Convenience Command Runner)
 
-# Convenience Variables.
+# Convenience Variables
 # rust vars
 RUST_LOG := 'debug'
 RUST_BACKTRACE := '1'
@@ -26,8 +26,16 @@ BRN := '\033[0;33m' # Brown
 _default:
         @just --list --unsorted
 
-alias cs := cargo-script
-alias csa := cargo-script-all
+# Ready all local `.rs` files.
+[confirm("This will:\n \
+(1) Give user executable permissions to all `.rs` files in current directory level.\n \
+    (`chmod u+x`)\n \
+(2) Run `cargo` clean, build, and doc on those files.\n\n \
+Commands can be inspected in the currently invoked `justfile`.\n\n \
+-- Confirm initialization?")]
+init: _permit-all (cargo-script-all 'clean') (cargo-script-all 'build') (cargo-script-all 'doc')
+    @echo '\n{{BLU}}NOTE{{NC}}: file are build with{{BRN}}out{{NC}} `--release`.'
+    @echo 'The Cargo-Script files are set to run in {{CYN}}debug{{NC}} mode unless otherwise set.'
 
 # Cargo _ on script file.
 cargo-script command file *args:
@@ -39,7 +47,7 @@ cargo-script-all command *args:
         | xargs -I _                                                  \
         cargo +nightly {{command}} {{args}} --manifest-path _ -Zscript;
 
-# New script, with executable user privileges
+# New script, with executable user privileges.
 [group('create')]
 new name:
     cat _template-script-basic_rs             \
@@ -47,7 +55,7 @@ new name:
         > {{name}}.rs                         ;
     chmod u+x {{name}}.rs
 
-# New script, with executable user privileges
+# New script, with executable user privileges.
 [group('create')]
 new-clap name:
     cat _template-script-clap_rs              \
@@ -109,6 +117,18 @@ watch-check-run file:
         echo '-- run ./{{file}}.rs --';     \
         RUSTFLAGS={{NO_WARN}} ./{{file}}.rs';
 
+# `chmod u+x` on ALL `.rs` files at current directory level.
+_permit-all:
+    fd . --extension rs --max-depth 1 \
+        | xargs -I _                  \
+        chmod u+x _                   ;
+
+# `chmod u-x` on ALL `.rs` files at current directory level.
+_depermit-all:
+    fd . --extension rs --max-depth 1 \
+        | xargs -I _                  \
+        chmod a-x _                   ;
+
 # Info about Rust-Compiler, Rust-Analyzer, Cargo-Clippy, and Rust-Updater.
 _rust-meta-info:
     rustc --version
@@ -116,9 +136,9 @@ _rust-meta-info:
     cargo-clippy --version
     rustup --version
 
-# ######################################################################## #
+# ######################################################################## #.
 
-# Count all `{{_}}` vs `{{pat_}}`, show diff
+# Count all `{{_}}` vs `{{pat_}}`, show diff.
 [group('template_check')]
 _bracket-diff pat_prefix='sd_me:' file_globs='_template*':
     @echo "{{{{"{{pat_prefix}}".*}}:"
@@ -132,7 +152,7 @@ _bracket-diff pat_prefix='sd_me:' file_globs='_template*':
         | rg {{pat_prefix}} --invert-match \
         | uniq -c                          ;
 
-# Show contents of `{{pat_}}`
+# Show contents of `{{pat_}}`.
 [group('template_check')]
 _bracket-show pat_prefix='sd_me:' file_globs='_template*':
     @echo '{{{{'{{pat_prefix}}'_}} in files {{file_globs}}:'
@@ -141,13 +161,13 @@ _bracket-show pat_prefix='sd_me:' file_globs='_template*':
         | sort                                         \
         | uniq -c                                      ;
 
-# ######################################################################## #
+# ######################################################################## #.
 
 # Freeze! For your safety.
 _freeze file:
 	mv -iv {{file}} FROZE_{{sha256(file)}}_FROZE-{{file}} | rg {{file}}
 
-# Unfreeze a file. (removes 'FROZE...FROZE-' tag from filename)
+# Unfreeze a file. (removes 'FROZE...FROZE-' tag from filename).
 _thaw file:
 	echo {{file}} | sd '{{FROZE_SHA_REGEX}}' '' | xargs mv -iv {{file}}
 
@@ -155,7 +175,7 @@ _thaw file:
 _arctic-recon iceless_name:
 	fd --max-depth 1 '{{FROZE_SHA_REGEX}}{{iceless_name}}' | rg {{iceless_name}}
 
-# ######################################################################## #
+# ######################################################################## #.
 
 # Speak Funny to Me!
 _uu:
@@ -165,8 +185,8 @@ _uu:
 _sha file:
 	echo {{sha256_file(file)}}
 
-# Example function for syntax reference
+# Example function for syntax reference.
 _example-file-exists-test file:
     echo {{ if path_exists(file) == "true" { "hello" } else { "goodbye" } }}
 
-# ######################################################################## #
+# ######################################################################## #.
