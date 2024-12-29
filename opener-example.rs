@@ -4,7 +4,7 @@
 clap = { version = "4.5", features = ["derive"] }
 opener = "0.7.2"
 ---
-//! Opener example that takes a custom string.
+//! # Opener example that takes a custom string.
 //! example with `BROWSER` env var
 //!
 //! ## Run:

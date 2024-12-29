@@ -33,8 +33,6 @@ fn main() {
         println!("-{l_2}..={l_2}  %  3: {:>3?}", arr_rem, l_2=DIST_FROM_0);
 }
 
-
-
 /// Print contentws of each item of an array.
 fn print_array<D, const N: usize>(arr: [D; N]) 
 where D: Display
@@ -71,7 +69,6 @@ fn rem_array<const N: usize>(arr: [i64; N], modulus: u8) -> [i8; N] {
 
 // Used as a field of a struct.
 struct Foo<const N: usize>([i32; N]);
-
 impl<const N: usize> Foo<N> {
     // Used as an associated constant.
     const CONST: usize = N * 4;
@@ -80,7 +77,6 @@ impl<const N: usize> Foo<N> {
 trait Trait {
     type Output;
 }
-
 impl<const N: usize> Trait for Foo<N> {
     // Used as an associated type.
     type Output = [i32; N];

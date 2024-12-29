@@ -3,9 +3,9 @@
 [dependencies]
 ---
 //! Various things, including
-//! looking at everythingin path:
+//! looking at everything in path:
 //! ```zsh
-//!  clear;
+//! clear;
 //! echo $PATH | sd : '\n' | xargs -I_ fd '.*' _ -t f | sort
 //! ```
 //!
@@ -49,37 +49,34 @@ use std::env;
 use std::io::Write;
 
 fn main() -> core::result::Result<(), Box<dyn core::error::Error>>{
-
         // let mut buffer = String::new();
         // if !io::stdin().is_terminal() {
         //     io::stdin().read_to_string(&mut buffer)?;
         //     println!("Piped input: {}", buffer);
         // }
-
         // let stdin = io::stdin();
         // if stdin.is_terminal() {
         //     println!("stdin is a terminal");
         // } else {
         //     println!("stdin is not a terminal");
         // }
-
-
         println!("-----------------------------");
         let path_val = env::var("PATH").expect(r#""PATH" not found."#);
         let path_vals: Vec<_> = path_val.split(':').collect();
         println!("pathval: {path_vals:#?}");
-// echo $PATH | sd : '\n' | xargs -I_ fd '.*' _ -t f | sort
+
+        // echo $PATH | sd : '\n' | xargs -I_ fd '.*' _ -t f | sort
         // let spwn_rg = std::process::Command::new("sd")
 
         let echo= Command::new("echo")
-            .args(path_vals)
-            .stdout(Stdio::piped())
-            .spawn()?;
+                .args(path_vals)
+                .stdout(Stdio::piped())
+                .spawn()?;
         let mut sd= Command::new("sd")
-            .args([r#" "#, r#"\n"#])
-            .stdin(Stdio::piped())
-            .stdout(Stdio::piped())
-            .spawn()?;
+                .args([r#" "#, r#"\n"#])
+                .stdin(Stdio::piped())
+                .stdout(Stdio::piped())
+                .spawn()?;
         let echo_out = echo.wait_with_output().unwrap();
         println!("\necho out: {:?}\n", &echo_out);
         sd.stdin.take().unwrap().write_all(&echo_out.stdout).unwrap();

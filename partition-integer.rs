@@ -2,10 +2,9 @@
 ---
 [dependencies]
 clap = { version = "4.5", features = ["derive"] }
-opener = "0.7.2"
 itertools = "0.13"
 ---
-//! Number of ways to sum an integer in parts, ignoring order
+//! # Number of ways to sum an integer in parts, ignoring order
 //! [wikipedia link: Integer Partition](https://en.wikipedia.org/wiki/Integer_partition)
 //!
 //!
@@ -62,4 +61,3 @@ pub fn partition_single_int(int: u8) -> Vec<Vec<u8>> {
         }
         sol
 }
-

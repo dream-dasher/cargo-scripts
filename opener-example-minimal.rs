@@ -3,7 +3,7 @@
 [dependencies]
 opener = "0.7.2"
 ---
-//! Minimal Example of Opener function.
+//! # Minimal Example of Opener function.
 //! example with `BROWSER` env var
 //!
 //! ## Run:
@@ -17,7 +17,7 @@ opener = "0.7.2"
 const DEFAULT_PATH: &str = "https://www.rust-lang.org";
 
 fn main() {
-    opener::open_browser(DEFAULT_PATH).unwrap();
+        opener::open_browser(DEFAULT_PATH).unwrap();
 }
 
 

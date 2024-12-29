@@ -2,8 +2,7 @@
 ---
 [dependencies]
 ---
-//! Vec : just playing with with some vector methods.
-//!
+//! # Vec : just playing with with some vector methods.
 
 fn main() {
 
