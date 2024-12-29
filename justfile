@@ -1,10 +1,9 @@
 # Justfile (Convenience Command Runner)
 
+# Convenience Variables.
 # rust vars
 RUST_LOG:= 'debug'
 RUST_BACKTRACE:= '1'
-RUSTFLAGS:='--cfg tokio_unstable'
-TOML_VERSION:=`rg '^version = ".*"' Cargo.toml | sd '.*"(.*)".*' '$1'`
 # just path vars
 HOME_DIR := env_var('HOME')
 LOCAL_ROOT := justfile_directory()
@@ -112,7 +111,6 @@ _thaw file:
 # Search local files through ice.
 _arctic-recon iceless_name:
 	fd --max-depth 1 '{{FROZE_SHA_REGEX}}{{iceless_name}}' | rg {{iceless_name}}
-
 
 # ######################################################################## #
 
