@@ -7,19 +7,21 @@
 //! ## Convenience Section
 //!
 //! ### Shell Commands
-//! - run directly
+//! - direct
 //!   - `chmod u+x {{sd_me: script_name}}.rs`
 //!   - `./{{sd_me: script_name}}.rs`
-//! - run via cargo
+//! - via cargo
 //!   - `cargo +nightly -Zsscript {{sd_me: script_name}}.rs`
-//! - run other commands on script
-//!   - `cargo +nightly COMMAND *ARGS --manifest-path {{sd_me: script_name}}.rs -Zscript`
-//!     - e.g. `cargo +nightly update --manifest-path {{sd_me: script_name}}.rs -Zscript`
+//! - other cargo commands
+//!   - `cargo +nightly -Zscript COMMAND *ARGS --manifest-path {{sd_me: script_name}}.rs`
 //!
 //! ### Links
 //! - [Cargo Book: Script](https://doc.rust-lang.org/nightly/cargo/reference/unstable.html#script)
 //! - [Github: Cargo-Script Tracking](https://github.com/rust-lang/cargo/issues/12207)
+use core::result::Result;
+use core::error::Error;
 
-fn main() {
+fn main() -> Result<(), Box<dyn Error>> {
         println!("Hello from {{sd_me: script_name}}.rs!");
+        Ok(())
 }
