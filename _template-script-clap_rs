@@ -19,10 +19,16 @@ clap = { version = "4", features = ["derive"] }
 //! ### Links
 //! - [Cargo Book: Script](https://doc.rust-lang.org/nightly/cargo/reference/unstable.html#script)
 //! - [Github: Cargo-Script Tracking](https://github.com/rust-lang/cargo/issues/12207)
-use core::result::Result;
-use core::error::Error;
+use std::{env, error::Error, result::Result};
 
 use clap::Parser;
+
+fn main() -> Result<(), Box<dyn Error>> {
+        let args = Args::parse();
+        println!("Hi from {{sd_me: script_name}}.rs.  You said: {}", args.argument);
+        if args.wink { println!(";)"); }
+        Ok(())
+}
 
 /// {{sd_me: script_name}} Cargo-Script
 #[derive(Parser, Debug)]
@@ -33,10 +39,4 @@ struct Args {
         /// Boolean Flag
         #[arg(short, long)]
         wink: bool
-}
-fn main() -> Result<(), Box<dyn Error>> {
-        let args = Args::parse();
-        println!("Hi from {{sd_me: script_name}}.rs.  You said: {}", args.argument);
-        if args.wink { println!(";)"); }
-        Ok(())
 }

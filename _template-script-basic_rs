@@ -18,8 +18,7 @@
 //! ### Links
 //! - [Cargo Book: Script](https://doc.rust-lang.org/nightly/cargo/reference/unstable.html#script)
 //! - [Github: Cargo-Script Tracking](https://github.com/rust-lang/cargo/issues/12207)
-use core::result::Result;
-use core::error::Error;
+use std::{env, error::Error, result::Result};
 
 fn main() -> Result<(), Box<dyn Error>> {
         println!("Hello from {{sd_me: script_name}}.rs!");
