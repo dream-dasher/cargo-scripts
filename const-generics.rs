@@ -66,19 +66,3 @@ fn rem_array<const N: usize>(arr: [i64; N], modulus: u8) -> [i8; N] {
         }
         out
 }
-
-// Used as a field of a struct.
-struct Foo<const N: usize>([i32; N]);
-impl<const N: usize> Foo<N> {
-    // Used as an associated constant.
-    const CONST: usize = N * 4;
-}
-
-trait Trait {
-    type Output;
-}
-impl<const N: usize> Trait for Foo<N> {
-    // Used as an associated type.
-    type Output = [i32; N];
-}
-

@@ -67,12 +67,6 @@ struct Args {
         min_depth: Option<u8>,
 }
 
-/// Starts with a literal '.' and has len > 1
-/// (so the local shorthand `./` is not ignored)
-fn is_hidden(entry: &walkdir::DirEntry) -> bool {
-        entry.file_name().to_str().map(|s| s.starts_with('.') && (s.len() > 1)).unwrap_or(false)
-}
-
 /// Member of in-script ignore list.
 fn is_const_ignore(entry: &walkdir::DirEntry) -> bool {
         entry.file_name().to_str().map(|s| IGNORE.contains(&s)).unwrap_or(false)

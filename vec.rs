@@ -20,7 +20,7 @@ fn main() {
 
         // Leak
         {
-                let mut ref_to_forever = {
+                let ref_to_forever = {
                         let vv = vec!['a', 'b', 'g'];
                         vv.leak()
                 };
@@ -39,7 +39,7 @@ fn main() {
                 //         &mut vv
                 // };
                 let mut vv = vec!['A', 'B', 'G'];
-                let mut regular_lifetime = &mut vv;
+                let regular_lifetime = &mut vv;
                 println!("leaked ref: {:?}", regular_lifetime);
                 regular_lifetime.swap(0,2);
                 println!("leaked ref: {:?}", regular_lifetime);

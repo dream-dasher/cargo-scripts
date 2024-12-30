@@ -129,13 +129,6 @@ impl Display for FoundPath {
 
 
 
-/// Generate a `WallkDir` directory representation which can be iterated on.
-fn gen_walkdir(start_dir: &str, min_depth: usize, max_depth: usize) -> WalkDir {
-        WalkDir::new(start_dir)
-                .min_depth(min_depth)
-                .max_depth(max_depth)
-}
-
 /// Sort-Path - Displays files findable via $PATH
 #[derive(Parser, Debug)]
 #[command(version, about)]

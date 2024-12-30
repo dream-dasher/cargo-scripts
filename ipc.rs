@@ -20,12 +20,9 @@
 //! - [Cargo Book: Script](https://doc.rust-lang.org/nightly/cargo/reference/unstable.html#script)
 //! - [Github: Cargo-Script Tracking](https://github.com/rust-lang/cargo/issues/12207)
 
-use std::env;
-use std::io::{IsTerminal, Write, *};
-use std::io;
-use std::process::{Command, Stdio};
-use std::result::Result;
-use std::error::Error;
+use std::{env, error::Error, io::Write, 
+          process::{Command, Stdio}, 
+          result::Result};
 
 fn main() -> Result<(), Box<dyn Error>> {
         println!("Hello from ipc.rs.rs!");
