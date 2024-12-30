@@ -1,5 +1,6 @@
 #!/usr/bin/env -S cargo +nightly -Zscript
 ---
+package.edition = "2024"
 [dependencies]
 clap = { version = "4.5", features = ["derive"] }
 itertools = "0.13"
@@ -20,23 +21,20 @@ itertools = "0.13"
 //! 
 //! ## Convenience note:
 //! `chmod u+x partition-integer.rs`
-
 use clap::Parser;
 use itertools::Itertools;
-
-/// Use `BROWSER` envvar to test `opener` crate function.
-#[derive(Parser, Debug)]
-#[command(version, about)]
-struct Args {
-    /// Integer to partition.
-    integer: u8,
-}
-
 fn main() {
         let args = Args::parse();
         let sol_vec = partition_single_int(args.integer);
         println!("sollution with redundancies: {:?}", sol_vec);
         todo!("Logic error: redundant solutions.  Perf error: lots of repeated work.")
+}
+
+#[derive(Parser, Debug)]
+#[command(version, about)]
+struct Args {
+    /// Integer to partition.
+    integer: u8,
 }
 
 pub fn partition_single_int(int: u8) -> Vec<Vec<u8>> {

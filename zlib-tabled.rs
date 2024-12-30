@@ -1,5 +1,6 @@
 #!/usr/bin/env -S cargo +nightly -Zscript
 ---
+package.edition = "2024"
 [dependencies]
 indoc = "2.0.5"
 json_to_table = "0.9.0"

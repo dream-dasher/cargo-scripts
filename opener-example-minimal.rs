@@ -1,5 +1,6 @@
 #!/usr/bin/env -S cargo +nightly -Zscript
 ---
+package.edition = "2024"
 [dependencies]
 opener = "0.7.2"
 ---

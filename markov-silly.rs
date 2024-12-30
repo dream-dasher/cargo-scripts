@@ -1,29 +1,14 @@
-#!/usr/bin/env -S cargo +nightly --quiet -Zscript
+#!/usr/bin/env -S cargo +nightly -Zscript
 ---
+package.edition = "2024"
+profile.dev.opt-level = 3
 [dependencies]
 clap = { version = "4", features = ["derive"] }
 markov = "1.1.0"
 owo-colors = "4.1.0"
-[profile.dev]
-opt-level = 3
 ---
 #![feature(let_chains)]
 //! # Cargo-Script: markov-silly.rs
-//! 
-//! ## Convenience Section
-//!
-//! ### Shell Commands
-//! - direct
-//!   - `chmod u+x markov-silly.rs.rs`
-//!   - `./markov-silly.rs.rs`
-//! - via cargo
-//!   - `cargo +nightly -Zsscript markov-silly.rs.rs`
-//! - other cargo commands
-//!   - `cargo +nightly -Zscript COMMAND *ARGS --manifest-path markov-silly.rs.rs`
-//!
-//! ### Links
-//! - [Cargo Book: Script](https://doc.rust-lang.org/nightly/cargo/reference/unstable.html#script)
-//! - [Github: Cargo-Script Tracking](https://github.com/rust-lang/cargo/issues/12207)
 use std::{error::Error, result::Result, fs, path::PathBuf};
 
 use clap::Parser;
