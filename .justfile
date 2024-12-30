@@ -27,11 +27,11 @@ _default:
         @just --list --unsorted
 
 # Ready all local `.rs` files.
-[confirm("This will:\n \
+[confirm("This will:\n                                                                \
 (1) Give user executable permissions to all `.rs` files in current directory level.\n \
-    (`chmod u+x`)\n \
-(2) Run `cargo` clean, build, and doc on those files.\n\n \
-Commands can be inspected in the currently invoked `justfile`.\n\n \
+    (`chmod u+x`)\n                                                                   \
+(2) Run `cargo` clean, build, and doc on those files.\n\n                             \
+Commands can be inspected in the currently invoked `justfile`.\n\n                    \
 -- Confirm initialization?")]
 init: _permit-all (cargo-script-all 'clean') _compile-debug _compile-release (cargo-script-all 'doc')
 
@@ -48,7 +48,7 @@ cargo-script-all command *args:
 # New script, with executable user privileges.
 [group('create')]
 new name:
-    cat _template-script-basic_rs             \
+    cat .support/_template-script-basic_rs    \
         | sd '\{\{sd_me:(.*?)\}\}' '{{name}}' \
         > {{name}}.rs                         ;
     chmod u+x {{name}}.rs
@@ -56,7 +56,7 @@ new name:
 # New script, with executable user privileges.
 [group('create')]
 new-clap name:
-    cat _template-script-clap_rs              \
+    cat .support/_template-script-clap_rs      \
         | sd '\{\{sd_me:(.*?)\}\}' '{{name}}' \
         > {{name}}.rs                         ;
     chmod u+x {{name}}.rs
@@ -85,30 +85,30 @@ docs file:
 # Modify shebang: run without flags. (default)
 [group('modify')]
 simple-script file:
-    sd '\#!/usr/bin/env -S cargo .*$' \
+    sd '\#!/usr/bin/env -S cargo .*$'               \
         '#!/usr/bin/env -S cargo +nightly -Zscript' \
-        {{file}}.rs
+        {{file}}.rs                                 ;
 
 # Modify shebang: use`--quiet` when called directly.
 [group('modify')]
 quiet-script file:
-    sd '\#!/usr/bin/env -S cargo .*$' \
+    sd '\#!/usr/bin/env -S cargo .*$'                       \
         '#!/usr/bin/env -S cargo +nightly --quiet -Zscript' \
-        {{file}}
+        {{file}}                                            ;
 
 # Modify shebang: use `--release` when called directly.
 [group('modify')]
 heavy-script file:
-    sd '\#!/usr/bin/env -S cargo .*$' \
+    sd '\#!/usr/bin/env -S cargo .*$'                                             \
         '#!/usr/bin/env -S cargo +nightly -Zscript run --release --manifest-path' \
-        {{file}}
+        {{file}}                                                                  ;
 
 # Modify shebang: use `--release` & `--quiet` when called directly.
 [group('modify')]
 stable-script file:
-    sd '\#!/usr/bin/env -S cargo .*$' \
+    sd '\#!/usr/bin/env -S cargo .*$'                                                     \
         '#!/usr/bin/env -S cargo +nightly --quiet -Zscript run --release --manifest-path' \
-        {{file}}
+        {{file}}                                                                          ;
 
 # Run performance analysis on a package.
 [group('general')]
@@ -139,7 +139,7 @@ watch-check file:
 [group('watch')]
 watch-check-run file:
     watchexec --filter {{file}}          \
-        'clear; just check {{file}};        \
+        'clear; just check {{file}};     \
         echo '-- run ./{{file}} --';     \
         RUSTFLAGS={{NO_WARN}} ./{{file}}';
 
@@ -157,19 +157,19 @@ _depermit-all:
 
 # Compile in debug mode if NO `--release` in shebang
 _compile-debug:
-    just _has-shebang-no-release         \
+    just _has-shebang-no-release \
         | xargs -I _             \
         just cargo-script build _;
 
 # Compile in release mode if `--release` in shebang
 _compile-release:
-    just _has-shebang-release                      \
+    just _has-shebang-release              \
         | xargs -I _                       \
         just cargo-script build _ --release;
 
 # List files withOUT release in the sehbang.
 _has-shebang-no-release:
-    -@just _has-rs                                                   \
+    -@just _has-rs                                                  \
         | xargs -I _                                                \
         rg '^#!.*cargo' --files-with-matches _                      \
         | xargs -I _                                                \
@@ -178,7 +178,7 @@ _has-shebang-no-release:
 
 # List files with `--release` in shebang.
 _has-shebang-release:
-    -@just _has-rs                                     \
+    -@just _has-rs                                    \
         | xargs -I _                                  \
         rg '^#!.*cargo' --files-with-matches _        \
         | xargs -I _                                  \
@@ -199,7 +199,7 @@ _rust-meta-info:
 
 # Count all `{{_}}` vs `{{pat_}}`, show diff.
 [group('meta-tests')]
-_bracket-diff pat_prefix='sd_me:' file_globs='_template*':
+_bracket-diff pat_prefix='sd_me:' file_globs='.support/_template*':
     @echo "{{{{"{{pat_prefix}}".*}}:"
     @rg '\{\{''{{pat_prefix}}''.*\}\}' {{file_globs}} \
         | wc -l                                       ;
@@ -213,7 +213,7 @@ _bracket-diff pat_prefix='sd_me:' file_globs='_template*':
 
 # Show contents of `{{pat_}}`.
 [group('meta-tests')]
-_bracket-show pat_prefix='sd_me:' file_globs='_template*':
+_bracket-show pat_prefix='sd_me:' file_globs='.support/_template*':
     @echo '{{{{'{{pat_prefix}}'_}} in files {{file_globs}}:'
     @rg '\{\{''{{pat_prefix}}''.*\}\}' {{file_globs}}  \
         | sd '.*\{\{''{{pat_prefix}}''(.*)\}\}.*' '$1' \
@@ -230,7 +230,7 @@ _check-release-counts:
 
 # List files with `--release` in shebang.
 _has-cargo-shebang:
-    -@just _has-rs                               \
+    -@just _has-rs                              \
         | xargs -I _                            \
         rg '^#!.*cargo' --files-with-matches _  ;
 

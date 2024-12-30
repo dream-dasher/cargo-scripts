@@ -1,0 +1,7 @@
+# Settings for Cargo (`.cargo/config.toml`)
+#
+# Configuration options *separate* from `cargo.toml`
+# [Cargo Book: Configuration](https://doc.rust-lang.org/cargo/reference/config.html#env)
+
+[alias]
+xtask = "run -p xtask --"

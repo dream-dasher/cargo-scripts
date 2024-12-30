@@ -1,0 +1,103 @@
+#!/usr/bin/env bash
+# ^ uses `env` command (via that path) to get path variables and then call `bash`
+#   according to first occurrence found
+#
+# Name this script "pre-commit" and place it in the ".git/hooks/" directory
+
+##====================================================================================##
+# If any command fails, exit immediately with that command's exit status
+# Exit if an attempt to expand an unset variable
+# Write output to stdout
+set -euo pipefail
+##====================================================================================##
+
+##====================================================================================##
+## ANSI Color Codes for use with echo command
+## in order to ensure robustness we've just placed these in the hook itself
+##                                                     (rather than source another file)
+## Just comment in/out as needed if you decide to edit
+# BLACK='\033[0;30m'
+# RED='\033[0;31m'
+GREEN='\033[0;32m'
+# BROWN='\033[0;33m'
+# BLUE='\033[0;34m'
+# PURPLE='\033[0;35m'
+# CYAN='\033[0;36m'
+# LIGHT_GRAY='\033[0;37m'
+DARK_GRAY='\033[1;30m'
+# LIGHT_RED='\033[1;31m'
+LIGHT_GREEN='\033[1;32m'
+YELLOW='\033[1;33m'
+# LIGHT_BLUE='\033[1;34m'
+# LIGHT_PURPLE='\033[1;35m'
+# LIGHT_CYAN='\033[1;36m'
+# WHITE='\033[1;37m'
+NC='\033[0m' # No Color
+##====================================================================================##
+
+##====================================================================================##
+package_name="CRATE_NAME" # MANUALLY add package name here
+test_coverage_min=50           # below this result the `coverage` test will fail
+##====================================================================================##
+
+##====================================================================================##
+echo -e "${DARK_GRAY}==============${YELLOW}Beginning of Pre-Commit Hook Script${DARK_GRAY}===============${NC}"
+
+
+echo -e "${DARK_GRAY}================================================================${NC}"
+echo -e "${YELLOW} formatting... ${NC}"
+cargo fmt
+echo -e "${GREEN} Format successful. ${NC}"
+echo -e "${DARK_GRAY}================================================================${NC}"
+
+echo -e "${DARK_GRAY}================================================================${NC}"
+echo -e "${YELLOW} checking for errors... ${NC}"
+cargo check
+echo -e "${GREEN} Error check successful. ${NC}"
+echo -e "${DARK_GRAY}================================================================${NC}"
+
+echo -e "${DARK_GRAY}================================================================${NC}"
+echo -e "${YELLOW} checking cargo manifest errors... ${NC}"
+cargo verify-project
+echo -e "${GREEN} Manifest check successful. ${NC}"
+echo -e "${DARK_GRAY}================================================================${NC}"
+
+echo -e "${DARK_GRAY}================================================================${NC}"
+echo -e "${YELLOW} linting... ${NC}"
+cargo clippy
+echo -e "${GREEN} Lint check successful. ${NC}"
+echo -e "${DARK_GRAY}================================================================${NC}"
+
+echo -e "${DARK_GRAY}================================================================${NC}"
+echo -e "${YELLOW} heuristic spellchecking... ${NC}"
+typos
+echo -e "${GREEN} Heuristic spellchecking check successful. ${NC}"
+echo -e "${DARK_GRAY}================================================================${NC}"
+
+echo -e "${DARK_GRAY}================================================================${NC}"
+echo -e "${YELLOW} last commit linting... ${NC}"
+committed
+echo -e "${GREEN} Last commit's lint check successful. ${NC}"
+echo -e "${DARK_GRAY}================================================================${NC}"
+
+# echo -e "${DARK_GRAY}================================================================${NC}"
+# echo -e "${YELLOW} doc testing... ${NC}"
+# cargo test --doc
+# echo -e "${GREEN} Doc tests check successful. ${NC}"
+# echo -e "${DARK_GRAY}================================================================${NC}"
+
+# echo -e "${DARK_GRAY}================================================================${NC}"
+# echo -e "${YELLOW} general testing linting... ${NC}"
+# cargo nextest run --status-level=leak
+# echo -e "${GREEN} General tests check successful. ${NC}"
+# echo -e "${DARK_GRAY}================================================================${NC}"
+
+# echo -e "${DARK_GRAY}================================================================${NC}"
+# echo -e "${YELLOW} documenting code... ${NC}"
+# cargo doc --document-private-items --all-features
+# echo -e "${GREEN} Full documentation completed.. ${NC}"
+# echo -e "${DARK_GRAY}================================================================${NC}"
+
+echo -e "${DARK_GRAY}=================${LIGHT_GREEN}End of Pre-Commit Hook Script${DARK_GRAY}==================${NC}"
+##====================================================================================##
+# END OF SCRIPT

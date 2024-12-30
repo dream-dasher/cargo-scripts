@@ -1,0 +1,35 @@
+# rustfmt.toml
+## web description of options:
+## https://rust-lang.github.io/rustfmt/?version=master&search=
+
+# required_version   # specify rustfmt version requirement
+# ignore = []        # files for rustfmt to ignore
+
+## meta-config
+style_edition = "2024"
+unstable_features = true
+
+
+## general spacing
+max_width = 120
+tab_spaces = 8                       # legible groups! :)
+array_width = 120                    # arrays
+attr_fn_like_width = 120             # attributes
+fn_call_width = 120                  # function calls
+single_line_if_else_max_width = 120  # ¡doesn't always work!
+single_line_let_else_max_width = 120 # ¡doesn't always work!
+# fn_single_line = true              # creates false "unnecessary braces" lint
+
+
+## import organization
+imports_granularity = "Crate"      # group all imports for a crate together
+group_imports = "StdExternalCrate" # category style grouping of imports (ala isort in python)
+imports_indent = "Visual"
+
+## struct/enum related
+struct_field_align_threshold = 40 # move distance to seek type alignment in struct fields
+enum_discrim_align_threshold = 40 # move distance to seek type alignment in enum discriminants
+use_field_init_shorthand = true   # let _ = some_struct {x, y, z}
+
+## impl organization
+reorder_impl_items = true # assoc_type & const at top of impl
