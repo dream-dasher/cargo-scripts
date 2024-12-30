@@ -51,16 +51,22 @@ use walkdir::WalkDir;
 
 fn main() -> Result<(), Box<dyn Error>> {
         let args = Args::parse();
-        let min_d = args.min_depth.unwrap_or(0) as usize;
-        let max_d = args.min_depth.map_or(usize::MAX, |d| d as usize);
 
         let shell_path = env::var("PATH").expect(r#""PATH" not found."#);
         let mut path_vals: Vec<_> = shell_path.split(':').collect();
         path_vals.sort_unstable_by_key(|k| k.len());
+        if args.raw_paths {
+                println!("Raw {} paths:", "$PATH".green());
+                for (i, p) in path_vals.into_iter().enumerate() {
+                        let sep =  if i % 4 == 0 {"> "} else {"| "};
+                        println!("{:>3}{} {:<5}", i.blue(), sep.black(), p.cyan());
+                }
+                return Ok(())
+        }
 
         let mut found_paths = Vec::new();
         let mut forbidden_map = HashMap::new();
-        for uc_entry in path_vals.into_iter().flat_map(|p| gen_walkdir(p, min_d, max_d).into_iter()) {
+        for uc_entry in path_vals.into_iter().flat_map(|p| WalkDir::new(p).into_iter()) {
                 match uc_entry {
                         Ok(entry) => {
                                 let file = entry.file_name().to_string_lossy().into_owned();
@@ -75,11 +81,10 @@ fn main() -> Result<(), Box<dyn Error>> {
                         },
                 }
         }
-        // found_paths.sort_unstable_by_key(|(f, p)| f);
-        // found_paths.sort_unstable_by_key(|pair| pair.0.clone());
         found_paths.sort_unstable();
         let found_paths = FoundPaths {found_paths};
-        println!("found_paths: {}", found_paths);
+        if !args.found_paths_only { println!("{}:", "Found paths".blue()); }
+        println!("{}", found_paths); // Just doing formatting here would probably have been slightly better organizationally. (vs newtype)
         if args.show_errors {
                 println!("--------------- errors ---------------");
                 for key in forbidden_map.keys() {
@@ -88,7 +93,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                                 println!("      at depth {:<-2}: {:->20}", depth.blue(), path.display().purple());
                         }
                 }
-        } else if !forbidden_map.is_empty() {
+        } else if !forbidden_map.is_empty()  && !args.found_paths_only {
                println!("Some paths could not be fully processed.");
                println!("{} errors were recorded during directory walk.", forbidden_map.len().red());
                println!("Use the `{}` flag for greater visibility.", "--show-errors".cyan());
@@ -129,24 +134,19 @@ fn gen_walkdir(start_dir: &str, min_depth: usize, max_depth: usize) -> WalkDir {
         WalkDir::new(start_dir)
                 .min_depth(min_depth)
                 .max_depth(max_depth)
-                // .into_iter()
-                // .filter_entry(|ent|
-                //         if args.show_all { true }
-                //         else if ent.depth() != 0 { !is_const_ignore(ent) } else { true }
-                // )
 }
 
 /// Sort-Path - Displays files findable via $PATH
 #[derive(Parser, Debug)]
 #[command(version, about)]
 struct Args {
+        /// Show the explicit $PATH paths.
+        #[arg(short, long)]
+        raw_paths: bool,
         /// Show only the errors that occur.
         #[arg(short, long)]
         show_errors: bool,
-        /// Max_D
+        /// Only show found-paths. (useful for piping, e.g. into `wc -l`)
         #[arg(short, long)]
-        max_depth: Option<u8>,
-        /// (start dir is '0')
-        #[arg(long)]
-        min_depth: Option<u8>,
+        found_paths_only: bool,
 }
