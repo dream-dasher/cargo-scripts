@@ -25,7 +25,7 @@ fn main() {
         print_array(arr_hi);
 
         let arr_x: [i64; DIST_FROM_0 * 2 + 1] = 
-                core::array::from_fn(|i| -(DIST_FROM_0 as i64) + i as i64);
+                core::array::from_fn(|i| i as i64 - DIST_FROM_0 as i64);
         let arr_mod = mod_array(arr_x, DIV_BY);
         let arr_rem = rem_array(arr_x, DIV_BY);
         println!("raw array:    {:>3?}", arr_x);
@@ -33,7 +33,7 @@ fn main() {
         println!("-{l_2}..={l_2}  %  3: {:>3?}", arr_rem, l_2=DIST_FROM_0);
 }
 
-/// Print contentws of each item of an array.
+/// Print contents of each item of an array.
 fn print_array<D, const N: usize>(arr: [D; N]) 
 where D: Display
 {
@@ -43,7 +43,7 @@ where D: Display
         }
 }
 
-/// Calculates values of i64 array mod u8 and returns same zied u8 array.
+/// Calculates values of i64 array mod u8 and returns same sized u8 array.
 /// ## Note
 /// "mod" is used here to refer to non-negative remainder
 /// in rust this is `.rem_euclid`, even though `%` is sometimes called "mod"
@@ -55,7 +55,7 @@ fn mod_array<const N: usize>(arr: [i64; N], modulus: u8) -> [u8; N] {
         out
 }
 
-/// Calculates values of i64 array % i8 and returns same zied i8 array.
+/// Calculates values of i64 array % i8 and returns same sized i8 array.
 /// ## Note
 /// `%` is 'signed remainder'
 fn rem_array<const N: usize>(arr: [i64; N], modulus: u8) -> [i8; N] {
