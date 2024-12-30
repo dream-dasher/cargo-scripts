@@ -41,71 +41,14 @@
 //! ## Convenience note:
 //! `chmod u+x sort-path.rs`
 
-use std::process::{Command, Stdio};
-use std::io::*;
-use std::io;
-use std::io::IsTerminal;
 use std::env;
-use std::io::Write;
+use std::io::{IsTerminal, Write, *};
+use std::io;
+use std::process::{Command, Stdio};
 
-fn main() -> core::result::Result<(), Box<dyn core::error::Error>>{
-        // let mut buffer = String::new();
-        // if !io::stdin().is_terminal() {
-        //     io::stdin().read_to_string(&mut buffer)?;
-        //     println!("Piped input: {}", buffer);
-        // }
-        // let stdin = io::stdin();
-        // if stdin.is_terminal() {
-        //     println!("stdin is a terminal");
-        // } else {
-        //     println!("stdin is not a terminal");
-        // }
+fn main() {
         println!("-----------------------------");
-        let path_val = env::var("PATH").expect(r#""PATH" not found."#);
-        let path_vals: Vec<_> = path_val.split(':').collect();
+        let shell_path = env::var("PATH").expect(r#""PATH" not found."#);
+        let path_vals: Vec<_> = shell_path.split(':').collect();
         println!("pathval: {path_vals:#?}");
-
-        // echo $PATH | sd : '\n' | xargs -I_ fd '.*' _ -t f | sort
-        // let spwn_rg = std::process::Command::new("sd")
-
-        let echo= Command::new("echo")
-                .args(path_vals)
-                .stdout(Stdio::piped())
-                .spawn()?;
-        let mut sd= Command::new("sd")
-                .args([r#" "#, r#"\n"#])
-                .stdin(Stdio::piped())
-                .stdout(Stdio::piped())
-                .spawn()?;
-        let echo_out = echo.wait_with_output().unwrap();
-        println!("\necho out: {:?}\n", &echo_out);
-        sd.stdin.take().unwrap().write_all(&echo_out.stdout).unwrap();
-        let sd_out = sd.wait_with_output().unwrap();
-        println!("\nsd out: {:?}\n", &sd_out);
-
-        println!("-----------------------------");
-        // Piping from one process to another
-        // - defining commands -
-        let mut ls = Command::new("ls");
-        let mut cat = Command::new("cat");
-        ls.stdout(Stdio::piped());
-        cat.stdin(Stdio::piped());
-        cat.stdout(Stdio::piped());
-
-
-        // - background spawning -
-        let ls = ls.spawn().unwrap();
-        let mut cat = cat.spawn().unwrap();
-
-        // - get output 1 -
-        let ls_out = ls.wait_with_output().unwrap();
-        println!("\nls_out: {:?}", &ls_out);
-        // - grab proc2's sdtin and write to it -
-        cat.stdin.take().unwrap().write_all(&ls_out.stdout).unwrap();
-        // - get output 2 -
-        let cat_out = cat.wait_with_output().unwrap();
-
-        println!("\ncat_out: {}", String::from_utf8(cat_out.stdout).unwrap());
-        println!("-----------------------------");
-        Ok(())
 }
