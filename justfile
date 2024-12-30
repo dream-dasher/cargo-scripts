@@ -68,9 +68,9 @@ new-clap name:
 [group('general')]
 check file:
     @echo '-- clippy @ {{file}} --'
-    just cs clippy {{file}} --all-targets --all-features
+    just cargo-script clippy {{file}} --all-targets --all-features
     @echo '-- tests @ {{file}} --'
-    RUSTFLAGS={{NO_WARN}} just cs test {{file}} --all-targets --all-features --quiet
+    RUSTFLAGS={{NO_WARN}} just cargo-script test {{file}} --all-targets --all-features --quiet
     @echo '-- typos @ {{file}} --'
     typos ./{{file}}
 
@@ -83,7 +83,7 @@ docs-gen:
 # Show docs for a script.
 [group('general')]
 docs file:
-    just cs doc {{file}} --open --document-private-items --all-features
+    just cargo-script doc {{file}} --open --document-private-items --all-features
 
 # Modify shebang: run without flags. (default)
 [group('modify')]
