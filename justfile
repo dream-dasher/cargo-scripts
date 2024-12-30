@@ -33,13 +33,14 @@ _default:
 (2) Run `cargo` clean, build, and doc on those files.\n\n \
 Commands can be inspected in the currently invoked `justfile`.\n\n \
 -- Confirm initialization?")]
-init: _permit-all (cargo-script-all 'clean') (cargo-script-all 'build') (cargo-script-all 'doc')
-    @echo '\n{{BLU}}NOTE{{NC}}: file are build with{{BRN}}out{{NC}} `--release`.'
-    @echo 'The Cargo-Script files are set to run in {{CYN}}debug{{NC}} mode unless otherwise set.'
+init: _permit-all (cargo-script-all 'clean') _compile-debug _compile-release (cargo-script-all 'doc')
+    @echo '\n{{BLU}}NOTE{{NC}}: files are built with{{BRN}}out{{NC}} `--release`.'
+    @echo 'Modification of script shebang lines allows release or other profiles.'
+    @echo ''
 
 # Cargo _ on script file.
 cargo-script command file *args:
-    cargo +nightly {{command}} {{args}} --manifest-path {{file}}.rs -Zscript
+    cargo +nightly {{command}} {{args}} --manifest-path {{file}} -Zscript
 
 # Cargo _ on ALL `.rs` files at current directory level.
 cargo-script-all command *args:
@@ -71,7 +72,7 @@ check file:
     @echo '-- tests @ {{file}} --'
     RUSTFLAGS={{NO_WARN}} just cs test {{file}} --all-targets --all-features --quiet
     @echo '-- typos @ {{file}} --'
-    typos ./{{file}}.rs
+    typos ./{{file}}
 
 # Show general use docs.
 [group('general')]
@@ -84,38 +85,66 @@ docs-gen:
 docs file:
     just cs doc {{file}} --open --document-private-items --all-features
 
+# Modify shebang: run without flags. (default)
+[group('modify')]
+simple-script file:
+    sd '\#!/usr/bin/env -S cargo .*$' \
+        '#!/usr/bin/env -S cargo +nightly -Zscript' \
+        {{file}}.rs
+
+# Modify shebang: use`--quiet` when called directly.
+[group('modify')]
+quiet-script file:
+    sd '\#!/usr/bin/env -S cargo .*$' \
+        '#!/usr/bin/env -S cargo +nightly --quiet -Zscript' \
+        {{file}}
+
+# Modify shebang: use `--release` when called directly.
+[group('modify')]
+heavy-script file:
+    sd '\#!/usr/bin/env -S cargo .*$' \
+        '#!/usr/bin/env -S cargo +nightly -Zscript run --release --manifest-path' \
+        {{file}}
+
+# Modify shebang: use `--release` & `--quiet` when called directly.
+[group('modify')]
+stable-script file:
+    sd '\#!/usr/bin/env -S cargo .*$' \
+        '#!/usr/bin/env -S cargo +nightly --quiet -Zscript run --release --manifest-path' \
+        {{file}}
+
 # Run performance analysis on a package.
 [group('general')]
 perf-script file *args:
-    hyperfine './{{file}}.rs {{args}}' --warmup=3 --shell=none;
-    @echo 'Not run: {{GRN}}samply{{NC}} {{PRP}}record --iteration-count=3 ./{{file}}.rs {{args}};{{NC}}'
+    hyperfine './{{file}} {{args}}' --warmup=3 --shell=none;
+    @echo 'Not run: {{GRN}}samply{{NC}} {{PRP}}record --iteration-count=3 ./{{file}} {{args}};{{NC}}'
     @echo 'samply would respond: "{{BRN}}Profiling failed: Could not obtain the root task.{{NC}}"'
 
 # Run a file when it changes.
 [group('watch')]
 watch file:
-    watchexec --filter {{file}}.rs \
-        'clear; ./{{file}}.rs'     ;
+    watchexec --filter {{file}} \
+        'clear; ./{{file}}'     ;
 
 # Run a file, without warnings, when it changes.
 [group('watch')]
 watch-quiet file:
-    watchexec --filter {{file}}.rs                  \
-        'clear; RUSTFLAGS={{NO_WARN}} ./{{file}}.rs';
+    watchexec --filter {{file}}                  \
+        'clear; RUSTFLAGS={{NO_WARN}} ./{{file}}';
 
 # Lint & test a file when it changes.
 [group('watch')]
 watch-check file:
-    watchexec --filter {{file}}.rs \
+    watchexec --filter {{file}} \
         'clear; just check {{file}}'
 
 # Lint & test then run a file when it changes.
 [group('watch')]
 watch-check-run file:
-    watchexec --filter {{file}}.rs          \
+    watchexec --filter {{file}}          \
         'clear; just check {{file}};        \
-        echo '-- run ./{{file}}.rs --';     \
-        RUSTFLAGS={{NO_WARN}} ./{{file}}.rs';
+        echo '-- run ./{{file}} --';     \
+        RUSTFLAGS={{NO_WARN}} ./{{file}}';
 
 # `chmod u+x` on ALL `.rs` files at current directory level.
 _permit-all:
@@ -129,6 +158,39 @@ _depermit-all:
         | xargs -I _                  \
         chmod a-x _                   ;
 
+# Compile in debug mode if NO `--release` in shebang
+_compile-debug:
+    just _has-shebang-no-release         \
+        | xargs -I _             \
+        just cargo-script build _; 
+
+# Compile in release mode if `--release` in shebang
+_compile-release:
+    just _has-shebang-release                      \
+        | xargs -I _                       \
+        just cargo-script build _ --release; 
+
+# List files withOUT release in the sehbang.
+_has-shebang-no-release:
+    -@just _has-rs                                                   \
+        | xargs -I _                                                \
+        rg '^#!.*cargo' --files-with-matches _                      \
+        | xargs -I _                                                \
+        rg '^(#!.*\-\-release|[^#]|$)' -vm 1 --files-with-matches _ ;
+
+
+# List files with `--release` in shebang.
+_has-shebang-release:
+    -@just _has-rs                                     \
+        | xargs -I _                                  \
+        rg '^#!.*cargo' --files-with-matches _        \
+        | xargs -I _                                  \
+        rg '^#!.*\-\-release' --files-with-matches _  ;
+
+# List `.rs` files
+_has-rs:
+    -@fd . --extension rs --max-depth 1
+
 # Info about Rust-Compiler, Rust-Analyzer, Cargo-Clippy, and Rust-Updater.
 _rust-meta-info:
     rustc --version
@@ -139,7 +201,7 @@ _rust-meta-info:
 # ######################################################################## #.
 
 # Count all `{{_}}` vs `{{pat_}}`, show diff.
-[group('template_check')]
+[group('meta-tests')]
 _bracket-diff pat_prefix='sd_me:' file_globs='_template*':
     @echo "{{{{"{{pat_prefix}}".*}}:"
     @rg '\{\{''{{pat_prefix}}''.*\}\}' {{file_globs}} \
@@ -153,13 +215,27 @@ _bracket-diff pat_prefix='sd_me:' file_globs='_template*':
         | uniq -c                          ;
 
 # Show contents of `{{pat_}}`.
-[group('template_check')]
+[group('meta-tests')]
 _bracket-show pat_prefix='sd_me:' file_globs='_template*':
     @echo '{{{{'{{pat_prefix}}'_}} in files {{file_globs}}:'
     @rg '\{\{''{{pat_prefix}}''.*\}\}' {{file_globs}}  \
         | sd '.*\{\{''{{pat_prefix}}''(.*)\}\}.*' '$1' \
         | sort                                         \
         | uniq -c                                      ;
+
+# Inspect counts, ensure partitioning.
+[group('meta-tests')]
+_check-release-counts:
+    just _has-shebang-release | wc -l
+    just _has-shebang-no-release | wc -l
+    just _has-cargo-shebang | wc -l
+    just _has-rs | wc -l
+
+# List files with `--release` in shebang.
+_has-cargo-shebang:
+    -@just _has-rs                               \
+        | xargs -I _                            \
+        rg '^#!.*cargo' --files-with-matches _  ;
 
 # ######################################################################## #.
 
