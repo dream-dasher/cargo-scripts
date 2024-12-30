@@ -34,9 +34,6 @@ _default:
 Commands can be inspected in the currently invoked `justfile`.\n\n \
 -- Confirm initialization?")]
 init: _permit-all (cargo-script-all 'clean') _compile-debug _compile-release (cargo-script-all 'doc')
-    @echo '\n{{BLU}}NOTE{{NC}}: files are built with{{BRN}}out{{NC}} `--release`.'
-    @echo 'Modification of script shebang lines allows release or other profiles.'
-    @echo ''
 
 # Cargo _ on script file.
 cargo-script command file *args:
