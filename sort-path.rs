@@ -43,13 +43,12 @@ walkdir = "2.5.0"
 //!
 //! ## Convenience note:
 //! `chmod u+x sort-path.rs`
-use std::{collections::HashMap, env, fmt::{self, Display}, io, error::Error, path::{Path, PathBuf}, result::Result};
+use std::{collections::HashMap, env, fmt::{self, Display}, error::Error, path::{Path, PathBuf}, result::Result};
 
 use clap::Parser;
 use owo_colors::OwoColorize as _;
 use walkdir::WalkDir;
 
-const IGNORE: [&str; 2] = [".git", ".venv"];
 fn main() -> Result<(), Box<dyn Error>> {
         let args = Args::parse();
         let min_d = args.min_depth.unwrap_or(0) as usize;
@@ -72,7 +71,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                                 let depth = err.depth();
                                 let path = err.path().unwrap_or(Path::new(""));
                                 let io_err = err.io_error().expect("walkdir error not wrapped io-error");
-                                forbidden_map.entry(io_err.kind()).or_insert_with(Vec::new).push(path.to_path_buf());
+                                forbidden_map.entry(io_err.kind()).or_insert_with(Vec::new).push((depth, path.to_path_buf()));
                         },
                 }
         }
@@ -80,8 +79,20 @@ fn main() -> Result<(), Box<dyn Error>> {
         // found_paths.sort_unstable_by_key(|pair| pair.0.clone());
         found_paths.sort_unstable();
         let found_paths = FoundPaths {found_paths};
-        println!("forbidden_map: {:#?}", forbidden_map);
         println!("found_paths: {}", found_paths);
+        if args.show_errors {
+                println!("--------------- errors ---------------");
+                for key in forbidden_map.keys() {
+                        println!("{:?}", key.red());
+                        for (depth, path) in forbidden_map.get(key).unwrap() {
+                                println!("      at depth {:<-2}: {:->20}", depth.blue(), path.display().purple());
+                        }
+                }
+        } else if !forbidden_map.is_empty() {
+               println!("Some paths could not be fully processed.");
+               println!("{} errors were recorded during directory walk.", forbidden_map.len().red());
+               println!("Use the `{}` flag for greater visibility.", "--show-errors".cyan());
+        }
 
         Ok(())
 }
@@ -100,7 +111,7 @@ struct FoundPaths {
 impl Display for FoundPaths {
         fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
                 for path in self.found_paths.iter() {
-                        write!(f, "{}\n", path)?;
+                        writeln!(f, "{}", path)?;
                 }
                 Ok(())
         }
@@ -125,30 +136,17 @@ fn gen_walkdir(start_dir: &str, min_depth: usize, max_depth: usize) -> WalkDir {
                 // )
 }
 
-/// Sort-Path
+/// Sort-Path - Displays files findable via $PATH
 #[derive(Parser, Debug)]
 #[command(version, about)]
 struct Args {
-        /// String Arg
-        dir: Option<String>,
-        /// Show all files.
+        /// Show only the errors that occur.
         #[arg(short, long)]
-        show_all: bool,
+        show_errors: bool,
         /// Max_D
         #[arg(short, long)]
         max_depth: Option<u8>,
         /// (start dir is '0')
         #[arg(long)]
         min_depth: Option<u8>,
-}
-
-/// Starts with a literal '.' and has len > 1
-/// (so the local shorthand `./` is not ignored)
-fn is_hidden(entry: &walkdir::DirEntry) -> bool {
-        entry.file_name().to_str().map(|s| s.starts_with('.') && (s.len() > 1)).unwrap_or(false)
-}
-
-/// Member of in-script ignore list.
-fn is_const_ignore(entry: &walkdir::DirEntry) -> bool {
-        entry.file_name().to_str().map(|s| IGNORE.contains(&s)).unwrap_or(false)
 }
