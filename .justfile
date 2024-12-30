@@ -27,12 +27,7 @@ _default:
         @just --list --unsorted
 
 # Ready all local `.rs` files.
-[confirm("This will:\n                                                                \
-(1) Give user executable permissions to all `.rs` files in current directory level.\n \
-    (`chmod u+x`)\n                                                                   \
-(2) Run `cargo` clean, build, and doc on those files.\n\n                             \
-Commands can be inspected in the currently invoked `justfile`.\n\n                    \
--- Confirm initialization?")]
+[confirm("This will:\n (1) Give user executable permissions to all `.rs` files in current directory level.\n     (`chmod u+x`)\n (2) Run `cargo` clean, build, and doc on those files.\n\nCommands can be inspected in the currently invoked `justfile`.\n\n-- Confirm initialization?")]
 init: _permit-all (cargo-script-all 'clean') _compile-debug _compile-release (cargo-script-all 'doc')
 
 # Cargo _ on script file.
