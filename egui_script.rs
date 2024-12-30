@@ -1,4 +1,4 @@
-#!/usr/bin/env -S cargo +nightly -Zscript
+#!/usr/bin/env -S cargo +nightly --quiet -Zscript run --release --manifest-path
 ---
 [dependencies]
 egui = "0.30.0"
