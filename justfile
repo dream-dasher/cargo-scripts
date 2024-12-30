@@ -40,13 +40,13 @@ init: _permit-all (cargo-script-all 'clean') _compile-debug _compile-release (ca
 
 # Cargo _ on script file.
 cargo-script command file *args:
-    cargo +nightly -Zscript {{command}} {{args}} --manifest-path {{file}}
+    cargo +nightly {{command}} {{args}} --manifest-path {{file}} -Zscript
 
 # Cargo _ on ALL `.rs` files at current directory level.
 cargo-script-all command *args:
     fd . --extension rs --max-depth 1                                 \
         | xargs -I _                                                  \
-        cargo +nightly -Zscript {{command}} {{args}} --manifest-path _;
+        cargo +nightly {{command}} {{args}} --manifest-path _ -Zscript;
 
 # New script, with executable user privileges.
 [group('create')]
@@ -162,13 +162,13 @@ _depermit-all:
 _compile-debug:
     just _has-shebang-no-release         \
         | xargs -I _             \
-        just cargo-script build _; 
+        just cargo-script build _;
 
 # Compile in release mode if `--release` in shebang
 _compile-release:
     just _has-shebang-release                      \
         | xargs -I _                       \
-        just cargo-script build _ --release; 
+        just cargo-script build _ --release;
 
 # List files withOUT release in the sehbang.
 _has-shebang-no-release:
