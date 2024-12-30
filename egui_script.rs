@@ -1,5 +1,9 @@
-#!/usr/bin/env -S cargo +nightly --quiet -Zscript run --release --manifest-path
+#!/usr/bin/env -S cargo +nightly -Zscript
 ---
+[profile.dev]
+opt-level = 2
+[profile.dev.package."*"]
+opt-level = 2
 [dependencies]
 egui = "0.30.0"
 eframe = {version="0.30.0", default-features=false, features=["glow", "wayland"]}
