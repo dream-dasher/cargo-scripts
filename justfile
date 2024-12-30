@@ -40,13 +40,13 @@ init: _permit-all (cargo-script-all 'clean') _compile-debug _compile-release (ca
 
 # Cargo _ on script file.
 cargo-script command file *args:
-    cargo +nightly {{command}} {{args}} --manifest-path {{file}} -Zscript
+    cargo +nightly -Zscript {{command}} {{args}} --manifest-path {{file}}
 
 # Cargo _ on ALL `.rs` files at current directory level.
 cargo-script-all command *args:
     fd . --extension rs --max-depth 1                                 \
         | xargs -I _                                                  \
-        cargo +nightly {{command}} {{args}} --manifest-path _ -Zscript;
+        cargo +nightly -Zscript {{command}} {{args}} --manifest-path _;
 
 # New script, with executable user privileges.
 [group('create')]
