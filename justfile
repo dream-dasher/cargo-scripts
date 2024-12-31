@@ -1,17 +1,20 @@
 # Justfile (Convenience Command Runner)
 
-# Convenience Variables
 # rust vars
-RUST_LOG := 'debug'
-RUST_BACKTRACE := '1'
-NO_WARN := '-Awarnings'
+J_CARGO_CRATE_NAME:='template-workspace'
+J_CARGO_NO_WARN := '-Awarnings'
+J_RUST_LOG:= 'debug'
+J_RUST_BACKTRACE:= '1'
+J_RUSTFLAGS:='--cfg tokio_unstable'
+J_CARGO_TOML_VERSION:=`rg '^version = ".*"' Cargo.toml | sd '.*"(.*)".*' '$1'`
 # just path vars
-HOME_DIR := env_var('HOME')
-LOCAL_ROOT := justfile_directory()
-INVOCD_FROM := invocation_directory()
-INVOC_IS_ROOT := if INVOCD_FROM == LOCAL_ROOT { "true" } else { "false" }
+J_HOME_DIR := env_var('HOME')
+J_LOCAL_ROOT := justfile_directory()
+J_INVOCD_FROM := invocation_directory()
+J_INVOC_IS_ROOT := if J_INVOCD_FROM == J_LOCAL_ROOT { "true" } else { "false" }
 # custom vars
-FROZE_SHA_REGEX := 'FROZE_[a-fA-F0-9]{64}_FROZE-'
+J_FROZE_SHA_REGEX := 'FROZE_[a-fA-F0-9]{64}_FROZE-'
+J_VAR_OR_ENV_REGEX := '[A-Z][A-Z_0-9]{3}+'
 # ANSI Color Codes for use with echo command
 NC := '\033[0m'     # No Color
 CYN := '\033[0;36m' # Cyan
@@ -27,9 +30,17 @@ _default:
         @just --list --unsorted
 
 # Ready all local `.rs` files.
-[confirm("This will:\n (1) Give user executable permissions to all `.rs` files in current directory level.\n     (`chmod u+x`)\n (2) Run `cargo` clean, build, and doc on those files.\n\nCommands can be inspected in the currently invoked `justfile`.\n\n-- Confirm initialization?")]
-init: _permit-all (cargo-script-all 'clean') _compile-debug _compile-release (cargo-script-all 'doc')
+[confirm(
+'This will:
+(1) Give user executable permissions to all `.rs` files in current directory level.
+     (`chmod u+x`)
+(2) Run `cargo` clean, build, and doc on those files.
 
+Commands can be inspected in the currently invoked `justfile`.
+
+-- Confirm initialization?'
+)]
+init: _permit-all (cargo-script-all 'clean') _compile-debug _compile-release (cargo-script-all 'doc') && _list-external-deps _gen-env _gen-git-hooks
 # Cargo _ on script file.
 cargo-script command file *args:
     cargo +nightly {{command}} {{args}} --manifest-path {{file}} -Zscript
@@ -62,7 +73,7 @@ check file:
     @echo '-- clippy @ {{file}} --'
     just cargo-script clippy {{file}} --all-targets --all-features
     @echo '-- tests @ {{file}} --'
-    RUSTFLAGS={{NO_WARN}} just cargo-script test {{file}} --all-targets --all-features --quiet
+    RUSTFLAGS={{J_CARGO_NO_WARN}} just cargo-script test {{file}} --all-targets --all-features --quiet
     @echo '-- typos @ {{file}} --'
     typos ./{{file}}
 
@@ -122,7 +133,7 @@ watch file:
 [group('watch')]
 watch-quiet file:
     watchexec --filter {{file}}                  \
-        'clear; RUSTFLAGS={{NO_WARN}} ./{{file}}';
+        'clear; RUSTFLAGS={{J_CARGO_NO_WARN}} ./{{file}}';
 
 # Lint & test a file when it changes.
 [group('watch')]
@@ -136,7 +147,7 @@ watch-check-run file:
     watchexec --filter {{file}}          \
         'clear; just check {{file}};     \
         echo '-- run ./{{file}} --';     \
-        RUSTFLAGS={{NO_WARN}} ./{{file}}';
+        RUSTFLAGS={{J_CARGO_NO_WARN}} ./{{file}}';
 
 # `chmod u+x` on ALL `.rs` files at current directory level.
 _permit-all:
@@ -183,7 +194,15 @@ _has-shebang-release:
 _has-rs:
     -@fd . --extension rs --max-depth 1
 
+# List dependencies. (This command has dependencies.)
+[group('meta')]
+_list-external-deps:
+    @echo "{{CYN}}List of external dependencies for this command runner and repo:"
+    xsv table ad_deps.csv
+
+
 # Info about Rust-Compiler, Rust-Analyzer, Cargo-Clippy, and Rust-Updater.
+[group('meta')]
 _rust-meta-info:
     rustc --version
     rust-analyzer --version
@@ -231,17 +250,55 @@ _has-cargo-shebang:
 
 # ######################################################################## #.
 
+# Generate .env file from template, if .env file not present.
+_gen-env:
+    @ if [ -f '.env' ]; \
+        then \
+        echo '`{{BRN}}.env{{NC}}` exists, {{PRP}}skipping creation{{NC}}...' && exit 0; \
+        else \
+        cp -n .support/_template.env .env; \
+        sd '\{\{replace_me:.*\}\}' '{{J_CARGO_CRATE_NAME}}' .env; \
+        echo "{{BLU}}.env{{NC}} created from template with {{GRN}}example{{NC}} values."; \
+        fi
+
+# Attempt to add all git-hooks. (no overwrite)
+_gen-git-hooks: _gen-precommit-hook _gen-commitmsg-hook
+
+# Attempt to add `pre-commit` git-hook. (no overwrite)
+_gen-precommit-hook:
+    @ if [ -f '.git/hooks/pre-commit' ]; \
+        then \
+        echo '`.git/hooks/{{BRN}}pre-commit{{NC}}` exists, {{PRP}}skipping creation{{NC}}...' && exit 0; \
+        else \
+        cp -n .support/git_hooks/pre-commit .git/hooks/pre-commit; \
+        chmod u+x .git/hooks/pre-commit; \
+        echo live "{{BLU}}pre-commit{{NC}} hook added to {{GRN}}.git/hooks{{NC}} and set as executable"; \
+        fi
+
+# Attempt to add `commit-msg` git-hook. (no overwrite)
+_gen-commitmsg-hook:
+    @ if [ -f '.git/hooks/commit-msg' ]; \
+        then \
+        echo '`.git/hooks/{{BRN}}commit-msg{{NC}}` exists, {{PRP}}skipping creation{{NC}}...' && exit 0; \
+        else \
+        cp -n .support/git_hooks/commit-msg .git/hooks/commit-msg; \
+        chmod u+x .git/hooks/commit-msg; \
+        echo live "{{BLU}}commit-msg{{NC}} hook added to {{GRN}}.git/hooks{{NC}} and set as executable"; \
+        fi
+
+# ######################################################################## #.
+
 # Freeze! For your safety.
 _freeze file:
 	mv -iv {{file}} FROZE_{{sha256(file)}}_FROZE-{{file}} | rg {{file}}
 
 # Unfreeze a file. (removes 'FROZE...FROZE-' tag from filename).
 _thaw file:
-	echo {{file}} | sd '{{FROZE_SHA_REGEX}}' '' | xargs mv -iv {{file}}
+	echo {{file}} | sd '{{J_FROZE_SHA_REGEX}}' '' | xargs mv -iv {{file}}
 
 # Search local files through ice.
 _arctic-recon iceless_name:
-	fd --max-depth 1 '{{FROZE_SHA_REGEX}}{{iceless_name}}' | rg {{iceless_name}}
+	fd --max-depth 1 '{{J_FROZE_SHA_REGEX}}{{iceless_name}}' | rg {{iceless_name}}
 
 # ######################################################################## #.
 
