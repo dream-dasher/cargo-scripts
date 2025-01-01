@@ -7,6 +7,7 @@ directories = "5.0.1"
 dotenvy = "0.15.7"
 owo-colors = "4.1.0"
 rexpect = { version = "0.6.0", features = ["which"] }
+toml = "0.8.19"
 ---
 // config = "0.15.4"
 // human-panic = "2.0.2"
