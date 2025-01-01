@@ -4,22 +4,39 @@ package.edition = "2024"
 [dependencies]
 ---
 //! # Const Generics (super helpful!)
+//!
 //! 
 //! ## Links
-//! [Rust Reference: const generics](https://doc.rust-lang.org/reference/items/generics.html#const-generics)
-//! 
+//! - [Const Generics (rust reference)](https://doc.rust-lang.org/reference/items/generics.html#const-generics)
+//! - [Inline Const (rust blog)](https://blog.rust-lang.org/2024/06/13/Rust-1.79.0.html#inline-const-expressions)
+//! - [panic! in Const (rust blog)](https://blog.rust-lang.org/2021/12/02/Rust-1.57.0.html#panic-in-const-contexts)
+//!    - allows const assertion!
 //! 
 //! ## Allowable types
 //! - u8, u16, u32, u64, u128, usize, 
 //! - i8, i16, i32, i64, i128, isize, 
 //! - char
 //! - bool
-
 use std::fmt::Display;
+
+// const assert
+const _: () = assert!(0 == 132_u32.rem_euclid(2));
+const _: () = assert!(std::mem::size_of_val(_TEMP_HELLO_MESSAGE_STATIC) == 40);
+const _: () = assert!(std::mem::size_of_val(HELLO_MESSAGE_CONST) == 40);
+static _TEMP_HELLO_MESSAGE_STATIC: &str = "Hello from a const generics rust script!";
+// const _: () = assert!(*_TEMP_HELLO_MESSAGE_CONST == *HELLO_MESSAGE_CONST);
+const _: () = assert!(std::mem::size_of::<u64>() == 8);
+const _: () = assert!(u8::MAX == 255);
+const _: () = assert!(u16::MAX == 65_535);
+const _: () = assert!(u32::MAX == 4_294_967_295);
+const _: () = assert!(u64::MAX == 18_446_744_073_709_551_615);
+const _: () = assert!(u128::MAX == 340_282_366_920_938_463_463_374_607_431_768_211_455);
+// const store
+const HELLO_MESSAGE_CONST: &str = "Hello from a const generics rust script!";
 const DIST_FROM_0: usize = 6;
 const DIV_BY: u8 = 3;
 fn main() {
-        println!("Hello from a const generics rust script!");
+        println!("{HELLO_MESSAGE_CONST}");
         let arr_5 = [0,1,2,3,4];
         print_array(arr_5);
         let arr_hi = ['H', 'i', ',', 't', 'h', 'e', 'r', 'e', '.'];
