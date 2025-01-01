@@ -21,7 +21,7 @@ const TEXT_DEFAULT: &str = "July loves Billy.  Billy loves July.  Sarah loves Bo
 fn main() -> Result<(), Box<dyn Error>> {
         let args = Args::parse();
 
-        let n_size = args.ngram_size.map_or(NGRAM_SIZE_DEFAULT, |s| (s as usize).max(NGRAM_SIZE_MAX));
+        let n_size = args.ngram_size.map_or(NGRAM_SIZE_DEFAULT, |s| (s as usize).min(NGRAM_SIZE_MAX));
         if let Some(size) = args.ngram_size && size as usize > NGRAM_SIZE_MAX {
                 eprintln!("Ngram size was a bit large at {}.  We've {} it to {}.", size.blue(), "clipped".yellow(), NGRAM_SIZE_MAX.cyan());
         };
