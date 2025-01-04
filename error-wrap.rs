@@ -2,8 +2,10 @@
 ---
 package.edition = "2024"
 [dependencies]
-derive_more = { version="1", features=["display", "error", "from"] }
+derive_more = { version="1.0.0", features=["display", "error", "from"] }
 tracing-error = "0.2.1"
+tracing-subscriber = "0.3.19"
+tracing = "0.1.41"
 ---
 //! # Cargo-Script: error-wrap
 //! 
@@ -14,39 +16,78 @@ tracing-error = "0.2.1"
 //!
 //! ### Crate links
 //! - [derive_more](https://docs.rs/derive_more/latest/derive_more/)
-//!   - allows auto-derivation of errors with backtrace; and generall useful
+//!   - allows auto-derivation of errors with backtrace; and generally useful
 //!   - [this_error](https://docs.rs/thiserror/latest/thiserror/) works similarly
 //! - [backtrace](https://doc.rust-lang.org/std/backtrace/index.html)
 //!   - requires nightly
 //! - [tracing_error](https://docs.rs/tracing-error/latest/tracing_error/)
-//!   - tracing is amazing, but has crazy-makign docs and api design
+//!   - tracing is amazing, but has crazy-making docs and api design
 //!   - this sub-crate is no exception; but tldr: you can have it auto-grab
 //!   - any active tracing spans.  (note: tracing spans are thread-local)
 //! 
 //! ## Cargo-Script Notes
-//! ### Shell Commands
-//! - direct
-//!   - `chmod u+x error-wrap.rs`
-//!   - `./error-wrap.rs`
-//! - via cargo
-//!   - `cargo +nightly -Zsscript error-wrap.rs`
-//! - other cargo commands
-//!   - `cargo +nightly -Zscript COMMAND *ARGS --manifest-path error-wrap.rs`
-//!
+//! ### Call with Cargo
+//! ```shell
+//! clear
+//! cargo +nightly -Zscript error-wrap.rs
+//! ````
+//! add `RUST_BACKTRACE=1` to see backtrace
+//! 
 //! ### Cargo-Script Links
 //! - [Cargo Book: Script](https://doc.rust-lang.org/nightly/cargo/reference/unstable.html#script)
 //! - [Github: Cargo-Script Tracking](https://github.com/rust-lang/cargo/issues/12207)
 #![feature(error_generic_member_access)]
 
 use std::{backtrace, io};
+
 use derive_more::{Display, Error, From};
-type OurResult<A> = std::result::Result<A, ErrWrapper>;
+use tracing_error;
+
+pub type OurResult<A> = std::result::Result<A, ErrWrapper>;
+
 
 // // // // // // // // // // Demonstration-of-use Code // // // // // // // // // //
+use tracing::{debug, info, info_span, debug_span, instrument};
+use tracing_subscriber::{prelude::*, filter::LevelFilter};
 
 fn main() -> OurResult<()> {
+        let _writer = tracing_subscriber_shortened_boilerplate()?;
+        let _entered = debug_span!("Main springs.").entered();
+        debug!("A friendly fluff message.");
         println!("Hello from error-wrap.rs!");
+        let now = std::time::Instant::now();
+        let _entered = info_span!("Measuring duration", ?now).entered();
+        loop {
+                let time_so_far=now.elapsed();
+                info!(?time_so_far);
+                if time_so_far.as_secs().rem_euclid(3) == 0 {
+                        // Err(ErrKind::SuperstitiousConcern{source_dur: time_so_far})?
+                        let source_string = "hello".to_string();
+                        Err(ErrKind::OtherErrorString{source_string})?
+                }
+        }
 
+
+        // error!("The anticpated unanticipated...");
+        
+
+        // Ok(())
+}
+pub fn tracing_subscriber_shortened_boilerplate() -> OurResult<()> {
+        const OUTPUT_LOGGING_LEVEL: LevelFilter = LevelFilter::TRACE;
+        const ERROR_LOGGING_LEVEL: LevelFilter = LevelFilter::TRACE;
+
+        let error_layer = tracing_error::ErrorLayer::default()
+                .with_filter(ERROR_LOGGING_LEVEL);
+        let fmt_layer = tracing_subscriber::fmt::Layer::default()
+                .with_filter(OUTPUT_LOGGING_LEVEL);
+
+
+        let subscriber = tracing_subscriber::Registry::default()
+                .with(error_layer)
+                .with(fmt_layer);
+
+        tracing::subscriber::set_global_default(subscriber)?;
         Ok(())
 }
 
@@ -67,11 +108,14 @@ fn main() -> OurResult<()> {
 pub enum ErrKind {
         // `custom` errors
         #[from(ignore)]
-        #[display("Unparsable character: {}", source_char)]
-        ParseOther { source_char: char },
+        #[display("Kismet, weird, chance ... better not to take: {:?}", source_dur)]
+        SuperstitiousConcern { source_dur: std::time::Duration},
         // `repackaged` errors
         #[display("io error: {}", source)]
         Io { source: io::Error },
+        TracingSubscriber {
+                source: tracing::subscriber::SetGlobalDefaultError,
+        },
         // `other` errors
         #[from(ignore)] // use `make_dyn_error` instead; would conflict with auto-derives
         #[display("Uncategorized Error (dyn error object): {}", source)]
