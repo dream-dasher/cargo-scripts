@@ -67,7 +67,9 @@ fn main() -> OurResult<()> {
                         if time_so_far.as_micros().rem_euclid(7) == 0 {
                                 let source_dur = time_so_far;
                                 // We defined this custom error in our enum
-                                Err(ErrKind::SuperstitiousConcern {source_dur})?
+                                Err(ErrKind::SuperstitiousConcern {source_dur}.to_other())?
+                                // Err(ErrKind::SuperstitiousConcern {source_dur})?
+                                // Err(ErrKind::SuperstitiousConcern {source_dur})?
                         }
                         if time_so_far.as_micros().rem_euclid(5) == 0 { break }
                 }
@@ -84,17 +86,22 @@ fn main() -> OurResult<()> {
         }
         Ok(())
 }
+/// Just something nesty to give `spantrace` & `backtrace` more to do
+/// 1/3
 #[instrument(skip_all)]
 fn trim_double_parse_nest(s: impl AsRef<str>) -> OurResult<u64> {
         let so_clean = s.as_ref().trim();
         double_parse_nest(so_clean.to_string())
 }
+/// Just something nesty to give `spantrace` & `backtrace` more to do
+/// 2/3
 #[instrument]
 fn double_parse_nest(s: String) -> OurResult<u64> {
         let so_long = format!("{0}{0}", s);
         parse_nest(so_long)
 }
-
+/// Just something nesty to give `spantrace` & `backtrace` more to do
+/// 3/3
 #[instrument]
 fn parse_nest(s: String) -> OurResult<u64> {
         Ok(s.parse()?)
@@ -159,15 +166,6 @@ pub enum ErrKind {
         #[display(r#"Uncategorized string err: "{}""#, source_string)]
         OtherErrorString { source_string: String },
 }
-impl ErrKind {
-        /// This is a convenience function for creating `OtherErrorDyn`
-        pub fn make_dyn_error<E>(error: E) -> Self
-        where
-                E: Into<Box<dyn std::error::Error + Send + Sync>>,
-        {
-                Self::OtherErrorDyn { source: error.into() }
-        }
-}
 
 /// This is our Error Wrapper.  A struct, unlike the earlier enum.
 /// The heart of the error is `ErrKind` above.
@@ -215,6 +213,22 @@ where
         }
 }
 
+
+
+
+
+////\\\\\\|||||\\\\\\//// Example Convenience Extensions ////\\\\\\|||||\\\\\\//// 
+
+// Neither of these are necessary and they are redundant in terms of content.
+// But these are examples of how to add easy convenience functions for
+// grabbing errors dynamically.
+// (Which can be helpful ergonomics when exploring code, debugging, etc.)
+// 
+// One is simply an impl for our error kind, which can then be passed up.
+// The other is a trait that auto applies ot anything that we could wrap in
+// a regular dyn error, but wrapped up nicely in our errorwrapper
+
+
 pub trait ToOther {
         fn to_other(self) -> ErrWrapper;
 }
@@ -222,7 +236,18 @@ impl<E> ToOther for E
 where
         E: Into<Box<dyn std::error::Error + Send + Sync>>,
 {
+        /// This is another convenience funciton like the one above.
         fn to_other(self) -> ErrWrapper {
                 ErrKind::OtherErrorDyn { source: self.into() }.into()
+        }
+}
+
+impl ErrKind {
+        /// This is a convenience function for creating `OtherErrorDyn`
+        pub fn make_dyn_error<E>(error: E) -> Self
+        where
+                E: Into<Box<dyn std::error::Error + Send + Sync>>,
+        {
+                Self::OtherErrorDyn { source: error.into() }
         }
 }
