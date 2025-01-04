@@ -67,9 +67,7 @@ fn main() -> OurResult<()> {
                         if time_so_far.as_micros().rem_euclid(7) == 0 {
                                 let source_dur = time_so_far;
                                 // We defined this custom error in our enum
-                                Err(ErrKind::SuperstitiousConcern {source_dur}.to_other())?
-                                // Err(ErrKind::SuperstitiousConcern {source_dur})?
-                                // Err(ErrKind::SuperstitiousConcern {source_dur})?
+                                Err(ErrKind::SuperstitiousConcern {source_dur})?
                         }
                         if time_so_far.as_micros().rem_euclid(5) == 0 { break }
                 }
@@ -107,10 +105,7 @@ fn parse_nest(s: String) -> OurResult<u64> {
         Ok(s.parse()?)
 }
 
-// #[instrument]
-// fn trim_str(s: AsRef<str>) -> &str{
-//         s.trim()+s.trim()
-// }
+/// Shortened version of an actual tracing_subscriber boilerplate function.
 pub fn tracing_subscriber_shortened_boilerplate() -> OurResult<()> {
         const OUTPUT_LOGGING_LEVEL: LevelFilter = LevelFilter::TRACE;
         const ERROR_LOGGING_LEVEL: LevelFilter = LevelFilter::TRACE;
@@ -225,7 +220,7 @@ where
 // (Which can be helpful ergonomics when exploring code, debugging, etc.)
 // 
 // One is simply an impl for our error kind, which can then be passed up.
-// The other is a trait that auto applies ot anything that we could wrap in
+// The other is a trait that auto applies to anything that we could wrap in
 // a regular dyn error, but wrapped up nicely in our errorwrapper
 
 
@@ -236,7 +231,7 @@ impl<E> ToOther for E
 where
         E: Into<Box<dyn std::error::Error + Send + Sync>>,
 {
-        /// This is another convenience funciton like the one above.
+        /// This is another convenience function like the one above.
         fn to_other(self) -> ErrWrapper {
                 ErrKind::OtherErrorDyn { source: self.into() }.into()
         }
