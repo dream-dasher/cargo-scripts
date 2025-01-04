@@ -29,6 +29,14 @@ BRN := '\033[0;33m' # Brown
 _default:
         @just --list --unsorted
 
+alias cs:= cargo-script
+alias csa:= cargo-script-all
+alias wcr:= watch-check-run
+alias wr:= watch-run
+alias wc:= watch-check
+
+######## init ########
+ 
 # Ready all local `.rs` files.
 [confirm(
 'This will:
@@ -40,17 +48,25 @@ Commands can be inspected in the currently invoked `justfile`.
 
 -- Confirm initialization?'
 )]
+[group('init')]
 init: _permit-all (cargo-script-all 'clean') _compile-debug _compile-release (cargo-script-all 'doc') && _list-external-deps _gen-env _gen-git-hooks
+
+######## general ########
+ 
 # Cargo _ on script file.
+[group('general')]
 cargo-script command file *args:
     cargo +nightly {{command}} {{args}} --manifest-path {{file}} -Zscript
 
 # Cargo _ on ALL `.rs` files at current directory level.
+[group('general')]
 cargo-script-all command *args:
     fd . --extension rs --max-depth 1                                 \
         | xargs -I _                                                  \
         cargo +nightly {{command}} {{args}} --manifest-path _ -Zscript;
 
+######## create ########
+ 
 # New script, with executable user privileges.
 [group('create')]
 new name:
@@ -67,8 +83,11 @@ new-clap name:
         > {{name}}.rs                         ;
     chmod u+x {{name}}.rs
 
+    
+######## common ########
+
 # Linting, formatting, typo checking, etc.
-[group('general')]
+[group('common')]
 check file:
     @echo '-- clippy @ {{file}} --'
     just cargo-script clippy {{file}} --all-targets --all-features
@@ -78,54 +97,71 @@ check file:
     typos ./{{file}}
 
 # Show general use docs.
-[group('general')]
+[group('common')]
 docs-gen:
     rustup doc
     rustup doc --std
 
 # Show docs for a script.
-[group('general')]
+[group('common')]
 docs file:
     just cargo-script doc {{file}} --open --document-private-items --all-features
 
-# Modify shebang: run without flags. (default)
-[group('modify')]
-simple-script file:
-    sd '\#!/usr/bin/env -S cargo .*$'               \
-        '#!/usr/bin/env -S cargo +nightly -Zscript' \
-        {{file}}.rs                                 ;
-
-# Modify shebang: use`--quiet` when called directly.
-[group('modify')]
-quiet-script file:
-    sd '\#!/usr/bin/env -S cargo .*$'                       \
-        '#!/usr/bin/env -S cargo +nightly --quiet -Zscript' \
-        {{file}}                                            ;
-
-# Modify shebang: use `--release` when called directly.
-[group('modify')]
-heavy-script file:
-    sd '\#!/usr/bin/env -S cargo .*$'                                             \
-        '#!/usr/bin/env -S cargo +nightly -Zscript run --release --manifest-path' \
-        {{file}}                                                                  ;
-
-# Modify shebang: use `--release` & `--quiet` when called directly.
-[group('modify')]
-stable-script file:
-    sd '\#!/usr/bin/env -S cargo .*$'                                                     \
-        '#!/usr/bin/env -S cargo +nightly --quiet -Zscript run --release --manifest-path' \
-        {{file}}                                                                          ;
-
 # Run performance analysis on a package.
-[group('general')]
+[group('common')]
 perf-script file *args:
     hyperfine './{{file}} {{args}}' --warmup=3 --shell=none;
     @echo 'Not run: {{GRN}}samply{{NC}} {{PRP}}record --iteration-count=3 ./{{file}} {{args}};{{NC}}'
     @echo 'samply would respond: "{{BRN}}Profiling failed: Could not obtain the root task.{{NC}}"'
 
+# ######## modify ########
+
+# # This turns out to be sub-optimal.    
+# # Setting Cargo.toml options in the actual script seems clearer and more robust.
+# # e.g.
+# # ```
+# # ---
+# # ...
+# # profile.dev.opt-level = 2
+# # profile.dev.package."*".opt-level = 2
+# # ...
+# # ---
+# # ```
+
+# # Modify shebang: run without flags. (default)
+# [group('modify')]
+# simple-script file:
+#     sd '\#!/usr/bin/env -S cargo .*$'               \
+#         '#!/usr/bin/env -S cargo +nightly -Zscript' \
+#         {{file}}.rs                                 ;
+
+# # Modify shebang: use`--quiet` when called directly.
+# [group('modify')]
+# quiet-script file:
+#     sd '\#!/usr/bin/env -S cargo .*$'                       \
+#         '#!/usr/bin/env -S cargo +nightly --quiet -Zscript' \
+#         {{file}}                                            ;
+
+# # Modify shebang: use `--release` when called directly.
+# [group('modify')]
+# heavy-script file:
+#     sd '\#!/usr/bin/env -S cargo .*$'                                             \
+#         '#!/usr/bin/env -S cargo +nightly -Zscript run --release --manifest-path' \
+#         {{file}}                                                                  ;
+
+# # Modify shebang: use `--release` & `--quiet` when called directly.
+# [group('modify')]
+# stable-script file:
+#     sd '\#!/usr/bin/env -S cargo .*$'                                                     \
+#         '#!/usr/bin/env -S cargo +nightly --quiet -Zscript run --release --manifest-path' \
+#         {{file}}                                                                          ;
+
+
+######## watch ########
+
 # Run a file when it changes.
 [group('watch')]
-watch file:
+watch-run file:
     watchexec --filter {{file}} \
         'clear; ./{{file}}'     ;
 
