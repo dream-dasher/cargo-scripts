@@ -36,6 +36,7 @@ tracing = "0.1.41"
 //! ### Cargo-Script Links
 //! - [Cargo Book: Script](https://doc.rust-lang.org/nightly/cargo/reference/unstable.html#script)
 //! - [Github: Cargo-Script Tracking](https://github.com/rust-lang/cargo/issues/12207)
+//! 
 #![feature(error_generic_member_access)]
 
 use std::{backtrace, io};
@@ -47,32 +48,62 @@ pub type OurResult<A> = std::result::Result<A, ErrWrapper>;
 
 
 // // // // // // // // // // Demonstration-of-use Code // // // // // // // // // //
-use tracing::{debug, info, info_span, debug_span, instrument};
+use tracing::{trace, debug, info, info_span, debug_span, instrument};
 use tracing_subscriber::{prelude::*, filter::LevelFilter};
 
 fn main() -> OurResult<()> {
         let _writer = tracing_subscriber_shortened_boilerplate()?;
         let _entered = debug_span!("Main springs.").entered();
-        debug!("A friendly fluff message.");
-        println!("Hello from error-wrap.rs!");
-        let now = std::time::Instant::now();
-        let _entered = info_span!("Measuring duration", ?now).entered();
-        loop {
-                let time_so_far=now.elapsed();
-                info!(?time_so_far);
-                if time_so_far.as_secs().rem_euclid(3) == 0 {
-                        // Err(ErrKind::SuperstitiousConcern{source_dur: time_so_far})?
-                        let source_string = "hello".to_string();
-                        Err(ErrKind::OtherErrorString{source_string})?
+        info!("A friendly fluff message.");
+        info!("Hello from error-wrap.rs!");
+
+        // using a custom-error
+        {
+                let now = std::time::Instant::now();
+                let _entered = info_span!("Measuring duration", ?now).entered();
+                loop {
+                        let time_so_far=now.elapsed();
+                        trace!(?time_so_far);
+                        if time_so_far.as_micros().rem_euclid(7) == 0 {
+                                let source_dur = time_so_far;
+                                // We defined this custom error in our enum
+                                Err(ErrKind::SuperstitiousConcern {source_dur})?
+                        }
+                        if time_so_far.as_micros().rem_euclid(5) == 0 { break }
                 }
         }
 
-
-        // error!("The anticpated unanticipated...");
-        
-
-        // Ok(())
+        // using an outside-error (ParseIntError from std)
+        {
+                let strs_to_parse: [&str; 6] = ["1","22","333","4444","55555","sixsix"];
+                let _entered = debug_span!("parsing", items=strs_to_parse.len()).entered();
+                for s in strs_to_parse {
+                        let n = trim_double_parse_nest(s)?;
+                        debug!("{}", n);
+                }
+        }
+        Ok(())
 }
+#[instrument(skip_all)]
+fn trim_double_parse_nest(s: impl AsRef<str>) -> OurResult<u64> {
+        let so_clean = s.as_ref().trim();
+        double_parse_nest(so_clean.to_string())
+}
+#[instrument]
+fn double_parse_nest(s: String) -> OurResult<u64> {
+        let so_long = format!("{0}{0}", s);
+        parse_nest(so_long)
+}
+
+#[instrument]
+fn parse_nest(s: String) -> OurResult<u64> {
+        Ok(s.parse()?)
+}
+
+// #[instrument]
+// fn trim_str(s: AsRef<str>) -> &str{
+//         s.trim()+s.trim()
+// }
 pub fn tracing_subscriber_shortened_boilerplate() -> OurResult<()> {
         const OUTPUT_LOGGING_LEVEL: LevelFilter = LevelFilter::TRACE;
         const ERROR_LOGGING_LEVEL: LevelFilter = LevelFilter::TRACE;
@@ -81,7 +112,6 @@ pub fn tracing_subscriber_shortened_boilerplate() -> OurResult<()> {
                 .with_filter(ERROR_LOGGING_LEVEL);
         let fmt_layer = tracing_subscriber::fmt::Layer::default()
                 .with_filter(OUTPUT_LOGGING_LEVEL);
-
 
         let subscriber = tracing_subscriber::Registry::default()
                 .with(error_layer)
@@ -108,20 +138,24 @@ pub fn tracing_subscriber_shortened_boilerplate() -> OurResult<()> {
 pub enum ErrKind {
         // `custom` errors
         #[from(ignore)]
-        #[display("Kismet, weird, chance ... better not to take: {:?}", source_dur)]
+        #[display("Kismet, weird, chance better not to taken.  Tiny son of seven: {:?}", source_dur)]
         SuperstitiousConcern { source_dur: std::time::Duration},
+
         // `repackaged` errors
         #[display("io error: {}", source)]
         Io { source: io::Error },
-        TracingSubscriber {
-                source: tracing::subscriber::SetGlobalDefaultError,
-        },
+
+        #[display("parse error: {}", source)]
+        ParseInt { source: std::num::ParseIntError },
+
+        #[display("Error setting tracing subscriber default: {}", source)]
+        TracingSubscriber { source: tracing::subscriber::SetGlobalDefaultError },
+
         // `other` errors
         #[from(ignore)] // use `make_dyn_error` instead; would conflict with auto-derives
         #[display("Uncategorized Error (dyn error object): {}", source)]
-        OtherErrorDyn {
-                source: Box<dyn std::error::Error + Send + Sync>,
-        },
+        OtherErrorDyn { source: Box<dyn std::error::Error + Send + Sync> },
+
         #[display(r#"Uncategorized string err: "{}""#, source_string)]
         OtherErrorString { source_string: String },
 }
