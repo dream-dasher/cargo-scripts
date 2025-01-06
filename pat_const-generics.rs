@@ -46,6 +46,7 @@ fn main() {
                 core::array::from_fn(|i| i as i64 - DIST_FROM_0 as i64);
         let arr_mod = mod_array(arr_x, DIV_BY);
         let arr_rem = rem_array(arr_x, DIV_BY);
+        println!();
         println!("raw array:    {:>3?}", arr_x);
         println!("-{l_2}..={l_2} mod 3: {:>3?}", arr_mod, l_2=DIST_FROM_0);
         println!("-{l_2}..={l_2}  %  3: {:>3?}", arr_rem, l_2=DIST_FROM_0);
@@ -55,7 +56,7 @@ fn main() {
 fn print_array<D, const N: usize>(arr: [D; N]) 
 where D: Display
 {
-        println!("The const value in this function `N` is: {}", N);
+        println!("\nThe const value, `N`, in this function is: {}", N);
         for i in 0..N {
                 println!("{i} element is : {}", arr[i]);
         }
