@@ -159,29 +159,29 @@ perf-script file *args:
 
 # Run a file when it changes.
 [group('watch')]
-watch-run file:
-    watchexec --filter {{file}} \
-        'clear; ./{{file}}'     ;
+watch-run file *args:
+    watchexec --filter {{file}}     \
+        'clear; ./{{file}} {{args}}';
 
 # Run a file, without warnings, when it changes.
 [group('watch')]
-watch-quiet file:
-    watchexec --filter {{file}}                  \
-        'clear; RUSTFLAGS={{J_CARGO_NO_WARN}} ./{{file}}';
+watch-quiet file *args:
+    watchexec --filter {{file}}                                   \
+        'clear; RUSTFLAGS={{J_CARGO_NO_WARN}} ./{{file}} {{args}}';
 
 # Lint & test a file when it changes.
 [group('watch')]
 watch-check file:
-    watchexec --filter {{file}} \
-        'clear; just check {{file}}'
+    watchexec --filter {{file}}     \
+        'clear; just check {{file}}';
 
 # Lint & test then run a file when it changes.
 [group('watch')]
-watch-check-run file:
-    watchexec --filter {{file}}          \
-        'clear; just check {{file}};     \
-        echo '-- run ./{{file}} --';     \
-        RUSTFLAGS={{J_CARGO_NO_WARN}} ./{{file}}';
+watch-check-run file *args:
+    watchexec --filter {{file}}                           \
+        'clear; just check {{file}};                      \
+        echo '-- run ./{{file}} --';                      \
+        RUSTFLAGS={{J_CARGO_NO_WARN}} ./{{file}} {{args}}';
 
 # `chmod u+x` on ALL `.rs` files at current directory level.
 _permit-all:
