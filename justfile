@@ -1,12 +1,10 @@
 # Justfile (Convenience Command Runner)
 
 # rust vars
-J_CARGO_CRATE_NAME:='template-workspace'
 J_CARGO_NO_WARN := '-Awarnings'
 J_RUST_LOG:= 'debug'
 J_RUST_BACKTRACE:= '1'
 J_RUSTFLAGS:='--cfg tokio_unstable'
-J_CARGO_TOML_VERSION:=`rg '^version = ".*"' Cargo.toml | sd '.*"(.*)".*' '$1'`
 # just path vars
 J_HOME_DIR := env_var('HOME')
 J_LOCAL_ROOT := justfile_directory()
@@ -36,7 +34,7 @@ alias wr:= watch-run
 alias wc:= watch-check
 
 ######## init ########
- 
+
 # Ready all local `.rs` files.
 [confirm(
 'This will:
@@ -293,7 +291,6 @@ _gen-env:
         echo '`{{BRN}}.env{{NC}}` exists, {{PRP}}skipping creation{{NC}}...' && exit 0; \
         else \
         cp -n .support/_template.env .env; \
-        sd '\{\{replace_me:.*\}\}' '{{J_CARGO_CRATE_NAME}}' .env; \
         echo "{{BLU}}.env{{NC}} created from template with {{GRN}}example{{NC}} values."; \
         fi
 
