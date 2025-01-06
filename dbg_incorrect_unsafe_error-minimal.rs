@@ -2,7 +2,6 @@
 ---
 package.edition = "2024"
 [dependencies]
-derive_more = { version = "1.0", features = ["display"] }
 ---
 //! # Debug Example
 //!  rust-analyzer incorrect report
