@@ -43,7 +43,7 @@ use dirty_terminal::{clear_screen_ansi, dirty_pause};
 use tracing::{Level, event, instrument};
 
 // use day07::Result;
-type Result<T> = std::result::Result::<T, std::error::Error>;
+type Result<T> = std::result::Result::<T, Box<dyn std::error::Error>>;
 
 const LEN: usize = 5;
 fn main() -> Result<()> {
@@ -52,47 +52,59 @@ fn main() -> Result<()> {
         let b_arr = [Symbol::A; LEN];
         // let mut all = Vec::with_capacity(2_usize.pow(LEN as u32));
         let mut durations_recursive = Vec::new();
-        let mut durations_loop = Vec::new();
-        for _ in 0..(args.num_runs - 1) {
+        // let mut durations_loop = Vec::new();
+        for _ in 0..args.num_runs {
                 {
                         // recursive
                         let mut all = Vec::with_capacity(2_usize.pow(LEN as u32));
                         let start = Instant::now();
-                        all.extend(vec![b_arr]);
-                        all.extend(combinatorial_ordered_tree_recursive(b_arr, 0, args.manual_mode));
+                        // all.extend(vec![b_arr]);
+                        // all.extend(vec![PatWithExe { pat: vec![b_arr], idx: 0, i: 0}]);
+                        all.extend(combinatorial_ordered_tree_recursive(b_arr, 0, 0, args.manual_mode));
                         durations_recursive.push(start.elapsed());
                         {
                                 let solution_len = all.len();
-                                for i in all {
-                                        println!("{:?}", i);
+                                all.sort_unstable_by_key(|s| s.top_down_order);
+                                for pat in all {
+                                        println!("{}", pat);
                                 }
                                 println!("all length: {:?}", solution_len);
                                 println!("2^{} {}", LEN, 2_usize.pow(LEN as u32));
                         }
                 }
-                {
-                        // loop
-                        // let mut all = Vec::with_capacity(2_usize.pow(LEN as u32));
-                        let start = Instant::now();
-                        let all: Vec<[Symbol; LEN]> = combinatorial_ordered_tree_loop(args.manual_mode);
-                        durations_loop.push(start.elapsed());
-                        {
-                                let solution_len = all.len();
-                                for i in all {
-                                        println!("{:?}", i);
-                                }
-                                println!("all length: {:?}", solution_len);
-                                println!("2^{} {}", LEN, 2_usize.pow(LEN as u32));
-                        }
-                }
+                // {
+                //         // loop
+                //         // let mut all = Vec::with_capacity(2_usize.pow(LEN as u32));
+                //         let start = Instant::now();
+                //         let all: Vec<[Symbol; LEN]> = combinatorial_ordered_tree_loop(args.manual_mode);
+                //         durations_loop.push(start.elapsed());
+                //         {
+                //                 let solution_len = all.len();
+                //                 for pat in all {
+                //                         println!("{:?}", pat);
+                //                 }
+                //                 println!("all length: {:?}", solution_len);
+                //                 println!("2^{} {}", LEN, 2_usize.pow(LEN as u32));
+                //         }
+                // }
         }
 
-        let avg_recursive =
-                durations_recursive.iter().sum::<std::time::Duration>() / <u32>::try_from(args.num_runs).unwrap();
-        let avg_loop = durations_loop.iter().sum::<std::time::Duration>() / <u32>::try_from(args.num_runs).unwrap();
-        println!("Recursive: {:?}", avg_recursive);
-        println!("Loop: {:?}", avg_loop);
+        // let avg_recursive =
+        //         durations_recursive.iter().sum::<std::time::Duration>() / <u32>::try_from(args.num_runs).unwrap();
+        // let avg_loop = durations_loop.iter().sum::<std::time::Duration>() / <u32>::try_from(args.num_runs).unwrap();
+        // println!("Recursive: {:?}", avg_recursive);
+        // println!("Loop: {:?}", avg_loop);
         Ok(())
+}
+
+/// For Debugging and visualizing flow
+#[derive(Debug, derive_more::Display, Clone, Copy)]
+#[display("{:>6} {:?}  -- {} {}", top_down_order, pat, local_idx, local_i)]
+struct PatWithExe<const N: usize> {
+        pub pat: [Symbol; N],
+        pub top_down_order: usize,
+        pub local_idx: usize,
+        pub local_i: usize,
 }
 /// Generate (without repetition) all combinations of values
 /// AND do so in a way that has a known ordering, which allows for branch pruning during generation.
@@ -100,13 +112,15 @@ fn main() -> Result<()> {
 #[instrument(ret(level = Level::TRACE))]
 fn combinatorial_ordered_tree_recursive<const N: usize>(
         arr: [Symbol; N],
+        mut top_down_order: usize,
         idx: usize,
         manual_mode: bool,
-) -> Vec<[Symbol; N]>
+) -> Vec<PatWithExe<N>>
 where
         Symbol: Copy,
 {
-        let mut out: Vec<[Symbol; N]> = Vec::new();
+        // let mut out: Vec<[Symbol; N]> = Vec::new();
+        let mut out: Vec<PatWithExe<N>> = Vec::new();
         // out.push(arr);
         let to_do = idx..N;
         for i in to_do {
@@ -114,14 +128,17 @@ where
                 arr_alt[i] = Symbol::B;
                 if manual_mode {
                         event![Level::INFO, ?arr_alt, idx, i, "update"];
+                        // println!("{:?}, {:?}, {:?}", arr_alt, idx, i);
                         dirty_pause().unwrap();
-                        clear_screen_ansi();
                 }
-                out.push(arr_alt);
+                top_down_order+=1;
+                // out.push(arr_alt);
+                out.push(PatWithExe{pat: arr_alt, top_down_order, local_idx: idx, local_i: i});
                 if i + 1 < N {
-                        out.extend(combinatorial_ordered_tree_recursive(arr_alt, i + 1, manual_mode));
+                        out.extend(combinatorial_ordered_tree_recursive(arr_alt, top_down_order+(N-idx), i + 1, manual_mode));
                 }
         }
+        if manual_mode { clear_screen_ansi() };
         out
 }
 
