@@ -7,8 +7,18 @@ derive_more = { version = "1.0", features = ["display"] }
 tracing = "0.1.41"
 tracing-subscriber = "0.3.19"
 ---
-//! # Exploratory bin.
-//!
+//! # Debug Example
+//!  rust-analyzer incorrect report
+//! 
+//! rust-analyzer incorrectly reports that there is an unsafe function call - BUT only within ide.
+//! There's no error when using `cargo check --example` or `cargo clippy --example`
+//! The error is reported for the call to create an array with a fixed value.
+//! The same call, in another function, does not create an issue.
+//! 
+//! ## Note
+//! Non-minimal example.  (This was exploratory code that has been mostly moved directly)
+//! 
+//! ## Old notes
 //! 100_000 runs x LEN=5
 //! > 2^5 32
 //! > Recursive: 974ns
