@@ -10,10 +10,7 @@
 # (I *believe* 'identifiers' are some sort of pre-word chunk that will later tbe split into words for checking.)
 
 [default.extend-words]
-# lib_blocking = "lib_blocking"
-
-# [default.extend-ignore-re]  # blank out whole regions; e.g. markdown code fences; see link for syntax
-
+egui = "egui"
 
 [files]
-extend-exclude = ["**/data/**", "*.log", "*.csv"]
+extend-exclude = ["**/data/**", ".output/**", "*.log", "*.csv"]

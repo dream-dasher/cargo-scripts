@@ -9,17 +9,17 @@
 style_edition = "2024"
 unstable_features = true
 
-
 ## general spacing
 max_width = 120
 tab_spaces = 8                       # legible groups! :)
 array_width = 120                    # arrays
 attr_fn_like_width = 120             # attributes
 fn_call_width = 120                  # function calls
+struct_lit_width = 120               # raw struct instantiation
+struct_variant_width = 120           # enum struct variant instantiation
 single_line_if_else_max_width = 120  # ¡doesn't always work!
 single_line_let_else_max_width = 120 # ¡doesn't always work!
 # fn_single_line = true              # creates false "unnecessary braces" lint
-
 
 ## import organization
 imports_granularity = "Crate"      # group all imports for a crate together

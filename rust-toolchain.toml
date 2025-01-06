@@ -2,4 +2,6 @@
 # link describing options for this file: https://rust-lang.github.io/rustup/overrides.html#the-toolchain-file
 
 [toolchain]
+components = [ "rustfmt", "clippy", "rust-analyzer" ]
 channel = "nightly"
+# targets = [ "wasm32-unknown-unknown" ]
