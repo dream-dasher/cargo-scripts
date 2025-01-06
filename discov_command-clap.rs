@@ -9,15 +9,6 @@ clap = { version = "4.5", features = ["derive"] }
 use clap::Parser;
 use std::process::{Command, Stdio};
 
-/// Use with `BROWSER` envar
-#[derive(Parser, Debug)]
-#[command(version, about)]
-struct Args {
-        /// Optional string to print
-        opt_argument: Option<String>,
-        opt_runner: Option<String>,
-}
-
 const DEFAULT_ARGUMENT: &str = "---Hi there, from default string.---\n";
 const DEFAULT_RUNNER: &str = "echo";
 fn main() -> core::result::Result<(), Box<dyn core::error::Error>>{
@@ -39,3 +30,12 @@ fn main() -> core::result::Result<(), Box<dyn core::error::Error>>{
         println!("Spawned process output:\n{:#?}", out);
         Ok(())
 }
+
+#[derive(Parser, Debug)]
+#[command(version, about)]
+struct Args {
+        /// Optional string to print
+        opt_argument: Option<String>,
+        opt_runner: Option<String>,
+}
+
