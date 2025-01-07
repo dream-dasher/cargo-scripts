@@ -15,7 +15,6 @@ package.edition = "2024"
 //!     - e.g. in first mod referenced or at top of lib/rs/main.rs
 //! - `#[macro_export]`
 //!   - allows explicit exporting of macro *outside of crate*
-:w
 //!
 //! ### Shell Commands
 //! - direct
@@ -53,6 +52,46 @@ fn main() -> Result<(), Box<dyn Error>> {
         dbg!(add_as_and_say_type!(1,1,u8));
         dbg!(add_as_and_say_type!(1,1,i8));
         dbg!(add_as_and_say_type!(1,1,f32));
+
+
+        /// Matching with recursion.
+        /// NOTE: expansion appears (?) to occur based on *specific* arguments in code.
+        ///       which means that arbitrarily deep recursion like this is safe to define.
+        macro_rules! add_rec {
+            () => { 0 };
+            ($a:expr) => { $a };
+            ($a:expr,$($b:tt)*) => { $a + add_rec!($($b)*) }
+        }
+        dbg!(add_rec!());
+        dbg!(add_rec!(1));
+        dbg!(add_rec!(1,2));
+        dbg!(add_rec!(1,2,3));
+        dbg!(add_rec!(1,2,3,4));
+        dbg!(add_rec!(1,2,3,4,5));
+
+        /// Note this is recursion without clear terminal conditions...
+        macro_rules! add_rec_also_works {
+            () => { 0 };
+            ($a:expr) => { $a };
+            ($a:expr,$($b:tt)*) => { add_rec_also_works!($($b)*) + add_rec_also_works!($($b)*) }
+        }
+        dbg!(add_rec_also_works!());
+        dbg!(add_rec_also_works!(1));
+        dbg!(add_rec_also_works!(1,2));
+        dbg!(add_rec_also_works!(1,2,3));
+        dbg!(add_rec_also_works!(1,2,3,4));
+        dbg!(add_rec_also_works!(1,2,3,4,5));
+
+        /// Note this is recursion without clear terminal conditions...
+        macro_rules! add_rec_with_diagnostic_print {
+            () => {{ println!("0"); 0 }};
+            ($a:expr) => {{println!("1"); $a}};
+            ($a:expr,$b:expr) => {{println!("2"); add_rec_with_diagnostic_print!($a) + add_rec_with_diagnostic_print!($b) }};
+            ($a:expr,$($b:tt)*) => {{println!("3"); $a + add_rec_with_diagnostic_print!($($b)*) }}
+        }
+        dbg!(add_rec_also_works!());
+        dbg!(add_rec_also_works!(1));
+        dbg!(add_rec_also_works!(1,2));
 
         Ok(())
 }
