@@ -7,6 +7,16 @@ package.edition = "2024"
 //! 
 //! ## Convenience Section
 //!
+//! ## Note
+//! - `#[macro_escape]`
+//!   - results in a macros definition escaping it's formal file, and being usable in a broader lexical scope
+//!   - think of (?) `mod` as dropping files into one another
+//!   - this means, if you want the macro to be generally accessible, you need to define it high in the 'single' effective file
+//!     - e.g. in first mod referenced or at top of lib/rs/main.rs
+//! - `#[macro_export]`
+//!   - allows explicit exporting of macro *outside of crate*
+:w
+//!
 //! ### Shell Commands
 //! - direct
 //!   - `chmod u+x wip_macro.rs`
