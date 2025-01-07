@@ -7,7 +7,13 @@ package.edition = "2024"
 //! 
 //! ## Convenience Section
 //!
-//! ## Note
+//! ## relevant docs
+//! - [Little Book of Rust Macros](https://danielkeep.github.io/tlborm/book/README.html)
+//! - [Log Rocket macro tutorial](https://blog.logrocket.com/macros-in-rust-a-tutorial-with-examples/#whatarerustmacros)
+//! - [dtolnay's proc-macro-workshop](https://github.com/dtolnay/proc-macro-workshop)
+//!   - doesn't really belong here, but leaving it here until/unless I make a proc-macro cscript
+//! 
+//! ## of Note
 //! - `#[macro_escape]`
 //!   - results in a macros definition escaping it's formal file, and being usable in a broader lexical scope
 //!   - think of (?) `mod` as dropping files into one another
