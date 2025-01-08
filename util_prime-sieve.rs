@@ -4,18 +4,23 @@ package.edition = "2024"
 [dependencies]
 clap = { version = "4", features = ["derive"] }
 ---
-//! # Cargo-Script: scratch_prime
+//! # Cargo-Script: util_prime_sieve
+//!
+//! Gets slow fast. (around 1 billion on Debug mode)
+//! But nice enough. And faster than I'd have guessed given it's rather ... direct approach.
+//! (I wonder if the index calculations, skipping indices with false and jumping to P*n indicces, have any special
+//! performances advantages.)
 //! 
 //! ## Convenience Section
 //!
 //! ### Shell Commands
 //! - direct
-//!   - `chmod u+x scratch_prime.rs`
-//!   - `./scratch_prime.rs`
+//!   - `chmod u+x util_prime_sieve.rs`
+//!   - `./util_prime_sieve.rs`
 //! - via cargo
-//!   - `cargo +nightly -Zsscript scratch_prime.rs`
+//!   - `cargo +nightly -Zsscript util_prime_sieve.rs`
 //! - other cargo commands
-//!   - `cargo +nightly -Zscript COMMAND *ARGS --manifest-path scratch_prime.rs`
+//!   - `cargo +nightly -Zscript COMMAND *ARGS --manifest-path util_prime_sieve.rs`
 //!
 //! ### Links
 //! - [Cargo Book: Script](https://doc.rust-lang.org/nightly/cargo/reference/unstable.html#script)
