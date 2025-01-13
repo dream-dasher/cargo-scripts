@@ -33,3 +33,6 @@ use_field_init_shorthand = true   # let _ = some_struct {x, y, z}
 
 ## impl organization
 reorder_impl_items = true # assoc_type & const at top of impl
+
+## macros
+format_macro_bodies = false

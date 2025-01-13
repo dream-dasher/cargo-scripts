@@ -29,6 +29,9 @@
 .output/logging/**
 .output/profiling/**
 
+# support scratch notes or other localized ephemera at arbitrary depths
+**/no-sync*.md
+
 # gitkeep -- ¡this must be _after _ all exclusion patterns!
 #         -- this excludes it from being caught in *glob* patterns
 # dir-exclusion: "It is not possible to re-include a file if a parent directory of that file is excluded." -gitignore docs
