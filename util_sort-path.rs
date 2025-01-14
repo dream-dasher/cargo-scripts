@@ -29,12 +29,16 @@ use walkdir::WalkDir;
 fn main() -> Result<(), Box<dyn Error>> {
         let args = Args::parse();
 
-        let shell_path = env::var("PATH").expect(r#""PATH" not found."#);
-        let mut path_vals: Vec<_> = shell_path.split(':').collect();
-        path_vals.sort_unstable_by_key(|k| k.len());
+        let shell_paths_os = env::var_os("PATH").expect(r#""PATH" not found."#);
+        let mut path_vals: Vec<_> = env::split_paths(&shell_paths_os).collect();
+        path_vals.sort_unstable_by_key(|k| k.as_os_str().len());
         if args.raw_paths {
                 println!("Raw {} paths:", "$PATH".green());
                 for (i, p) in path_vals.into_iter().enumerate() {
+                        let p = match p.to_str() {
+                                Some(s) => s,
+                                None => &p.to_string_lossy()
+                        };
                         let sep =  if i % 4 == 0 {"> "} else {"| "};
                         println!("{:>3}{} {:<5}", i.blue(), sep.black(), p.cyan());
                 }
