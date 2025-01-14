@@ -57,7 +57,10 @@ fn main() -> Result<(), Box<dyn Error>> {
                 for (i, p) in path_vals.into_iter().enumerate() {
                         let p = match p.to_str() {
                                 Some(s) => s,
-                                None => &p.to_string_lossy()
+                                None => {
+                                        println!("{:>3} this string is not valid utf-8, converting lossilly{}",i.red(), ":".red());
+                                        &p.to_string_lossy()
+                                }
                         };
                         let sep =  if i % 4 == 0 {"> "} else {"| "};
                         println!("{:>3}{} {:<5}", i.blue(), sep.black(), p.cyan());
