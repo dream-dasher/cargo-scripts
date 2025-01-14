@@ -26,8 +26,28 @@ use std::{collections::HashMap, env, fmt::{self, Display}, error::Error, path::{
 use clap::Parser;
 use owo_colors::OwoColorize as _;
 use walkdir::WalkDir;
+
+/// Sort-Path - Displays files findable via $PATH
+#[derive(Parser, Debug)]
+#[command(version, about)]
+struct Args {
+        /// Show the explicit $PATH paths (not files in them).
+        #[arg(short, long)]
+        raw_paths: bool,
+
+        /// Show errors that occur when finding files in $PATH paths.
+        #[arg(short, long)]
+        show_errors: bool,
+
+        /// Only show found-paths. (useful for piping, e.g. into `wc -l`)
+        #[arg(short, long)]
+        found_paths_only: bool,
+}
 fn main() -> Result<(), Box<dyn Error>> {
         let args = Args::parse();
+        if 1 < [args.raw_paths, args.show_errors, args.found_paths_only].iter().filter(|&b| *b).count() {
+                Err("`raw_paths`, `show_errors`, and `found_paths_only` are mutually exclusive flags")?
+        }
 
         let shell_paths_os = env::var_os("PATH").expect(r#""PATH" not found."#);
         let mut path_vals: Vec<_> = env::split_paths(&shell_paths_os).collect();
@@ -105,21 +125,4 @@ impl Display for FoundPath {
         fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
                 write!(f, "{:-<8}: {:->20}", self.file.green(), self.path.display())
         }
-}
-
-
-
-/// Sort-Path - Displays files findable via $PATH
-#[derive(Parser, Debug)]
-#[command(version, about)]
-struct Args {
-        /// Show the explicit $PATH paths.
-        #[arg(short, long)]
-        raw_paths: bool,
-        /// Show only the errors that occur.
-        #[arg(short, long)]
-        show_errors: bool,
-        /// Only show found-paths. (useful for piping, e.g. into `wc -l`)
-        #[arg(short, long)]
-        found_paths_only: bool,
 }
