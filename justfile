@@ -112,6 +112,13 @@ perf-script file *args:
     @echo 'Not run: {{GRN}}samply{{NC}} {{PRP}}record --iteration-count=3 ./{{file}} {{args}};{{NC}}'
     @echo 'samply would respond: "{{BRN}}Profiling failed: Could not obtain the root task.{{NC}}"'
 
+# Run performance analysis on a package.
+[group('profile')]
+_perf-compare-release file *args:
+    hyperfine 'cargo +nightly run --manifest-path={{file}} -Zscript {{args}}' 'cargo +nightly run --release --manifest-path={{file}} -Zscript {{args}}' --warmup=3 --shell=none;
+    @echo 'Not run: {{GRN}}samply{{NC}} {{PRP}}record --iteration-count=3 ./{{file}} {{args}};{{NC}}'
+    @echo 'samply would respond: "{{BRN}}Profiling failed: Could not obtain the root task.{{NC}}"'
+
 # ######## modify ########
 
 # # This turns out to be sub-optimal.    
