@@ -4,7 +4,7 @@ package.edition = "2024"
 [dependencies]
 clap = { version = "4", features = ["derive"] }
 ---
-//! # Cargo-Script: util_prime_sieve
+//! # Cargo-Script: util_prime-sieve
 //!
 //! Gets slow fast. (around 1 billion on Debug mode)
 //! But nice enough. And faster than I'd have guessed given it's rather ... direct approach.
@@ -16,11 +16,11 @@ clap = { version = "4", features = ["derive"] }
 //! ### Shell Commands
 //! - direct
 //!   - `chmod u+x util_prime_sieve.rs`
-//!   - `./util_prime_sieve.rs`
+//!   - `./util_prime-sieve.rs`
 //! - via cargo
-//!   - `cargo +nightly -Zsscript util_prime_sieve.rs`
+//!   - `cargo +nightly -Zscript util_prime-sieve.rs`
 //! - other cargo commands
-//!   - `cargo +nightly -Zscript COMMAND *ARGS --manifest-path util_prime_sieve.rs`
+//!   - `cargo +nightly -Zscript COMMAND *ARGS --manifest-path util_prime-sieve.rs`
 //!
 //! ### Links
 //! - [Cargo Book: Script](https://doc.rust-lang.org/nightly/cargo/reference/unstable.html#script)
@@ -39,7 +39,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                         
                 }
                 Some(p) => {
-                        println!("Hi from scratch_prime.rs.  You requested primes for said: {}", p);
+                        println!("Hi from scratch_prime.rs.  You requested primes through: {}", p);
                         p
                 }
         };
