@@ -10,7 +10,7 @@ clap = { version = "4", features = ["derive"] }
 //! But nice enough. And faster than I'd have guessed given it's rather ... direct approach.
 //! (I wonder if the index calculations, skipping indices with false and jumping to P*n indicces, have any special
 //! performances advantages.)
-//! 
+//!
 //! ## Convenience Section
 //!
 //! ### Shell Commands
@@ -29,6 +29,26 @@ use std::{error::Error, result::Result};
 
 use clap::Parser;
 
+/// Very simple, almost hyper 'literal' eratosthenes-sieve.
+///
+/// For quick results in debug mode : stop around 100_million searched.
+/// For quick Results in release mode: stop around 1_billion searched.
+///
+/// Mostly for simple play, but useful int hos ranges.
+#[derive(Parser, Debug)]
+#[command(version, about)]
+struct Args {
+        /// Calculate all primes till some number
+        primes_till: Option<usize>,
+
+        /// Only show primes above this number
+        #[arg(short='n', long="min")]
+        primes_from: Option<usize>,
+
+        /// Show all primes found
+        #[arg(short, long)]
+        show: bool
+}
 fn main() -> Result<(), Box<dyn Error>> {
         let args = Args::parse();
         let primes_from = args.primes_from.unwrap_or(0);
@@ -36,7 +56,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 None => {
                         println!("Hi from scratch_prime.rs.  No primes_till given, defaulting to : 12_345");
                         12_345
-                        
+
                 }
                 Some(p) => {
                         println!("Hi from scratch_prime.rs.  You requested primes through: {}", p);
@@ -83,19 +103,4 @@ fn prime_sieve(min: Option<usize>, max: usize) -> Vec<usize> {
                 }
         }
         result
-}
-
-
-/// scratch_prime Cargo-Script
-#[derive(Parser, Debug)]
-#[command(version, about)]
-struct Args {
-        /// Calculate all primes till some number
-        primes_till: Option<usize>,
-        /// Only show primes above this number
-        #[arg(short='n', long="min")]
-        primes_from: Option<usize>,
-        /// Show all primes found
-        #[arg(short, long)]
-        show: bool
 }
