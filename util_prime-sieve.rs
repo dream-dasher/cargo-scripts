@@ -3,6 +3,7 @@
 package.edition = "2024"
 [dependencies]
 clap = { version = "4", features = ["derive"] }
+owo-colors = "4.1"
 ---
 //! # Cargo-Script: util_prime-sieve
 //!
@@ -28,6 +29,7 @@ clap = { version = "4", features = ["derive"] }
 use std::{error::Error, result::Result};
 
 use clap::Parser;
+use owo_colors::OwoColorize;
 
 /// Very simple, almost hyper 'literal' eratosthenes-sieve.
 ///
@@ -38,8 +40,8 @@ use clap::Parser;
 #[derive(Parser, Debug)]
 #[command(version, about)]
 struct Args {
-        /// Calculate all primes till some number
-        primes_till: Option<usize>,
+        /// Calculate all primes until some number (inclusive)
+        primes_until: Option<usize>,
 
         /// Only show primes above this number
         #[arg(short='n', long="min")]
@@ -50,27 +52,49 @@ struct Args {
         show: bool
 }
 fn main() -> Result<(), Box<dyn Error>> {
+        const DEFAULT_PRIMES_TILL: usize = 12_345;
         let args = Args::parse();
-        let primes_from = args.primes_from.unwrap_or(0);
-        let primes_till = match args.primes_till {
+        let primes_from_or_default = args.primes_from.unwrap_or(0);
+        let primes_till_or_default = match args.primes_until {
                 None => {
-                        println!("Hi from scratch_prime.rs.  No primes_till given, defaulting to : 12_345");
-                        12_345
-
+                        println!(
+                                "No `{}` input given, defaulting to : {}",
+                                "primes_until".green(),
+                                DEFAULT_PRIMES_TILL.cyan()
+                        );
+                        DEFAULT_PRIMES_TILL
                 }
                 Some(p) => {
-                        println!("Hi from scratch_prime.rs.  You requested primes through: {}", p);
+                        println!("You requested primes up to: {}", p.blue());
                         p
                 }
         };
-        println!("Calculating primes from ({primes_from}..={primes_till})...");
-        if primes_from > primes_till { Err("Error: your minimum is larger than your maximum.  Cancelling search.")? };
+        println!(
+                "Calculating primes from ({}..={})...",
+                primes_from_or_default.blue(),
+                primes_till_or_default.blue()
+        );
+        if primes_from_or_default > primes_till_or_default {
+                Err("Error: your minimum is larger than your maximum.  Cancelling search.")?
+        };
 
-        let found_primes = prime_sieve(args.primes_from, primes_till);
-        println!("Number of primes found <= {primes_till}: {}", found_primes.len());
-        println!("which makes the range ({primes_from}..={primes_till}) {:.1}% prime.", 100.*(found_primes.len() as f32)/(primes_till as f32 + 2.));
+        let found_primes = prime_sieve(args.primes_from, primes_till_or_default);
+        println!(
+                "Number of primes found <= {}: {}",
+                primes_till_or_default.blue(),
+                found_primes.len().green().bold()
+        );
+        println!(
+                "which makes the range ({}..={}) {:.1}% prime.",
+                primes_from_or_default.blue(),
+                primes_till_or_default.blue(),
+                (100. * (found_primes.len() as f32)
+                        / ((primes_till_or_default - primes_from_or_default) as f32 + 2.))
+                        .cyan()
+                        .bold()
+        );
         if args.show {
-                println!("{:?}", found_primes);
+                println!("{:?}", found_primes.magenta());
         }
         Ok(())
 }
