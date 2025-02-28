@@ -7,8 +7,13 @@ owo-colors = "4.1"
 ---
 //! # Cargo-Script: util_prime-sieve
 //!
-//! Gets slow fast. (around 1 billion on Debug mode)
-//! But nice enough. And faster than I'd have guessed given it's rather ... direct approach.
+//! Gets slow around 100 million in debug mode and 1 billion in release mode.
+//! 100_000_000
+//! 1_000_000_000
+//! (note: doesn't seem to be a way to enter numbers with `_` separators via cli for clap)
+//!
+//! Faster than I'd have guessed given its rather ... direct approach.
+//!
 //! (I wonder if the index calculations, skipping indices with false and jumping to P*n indicces, have any special
 //! performances advantages.)
 //!
@@ -31,7 +36,7 @@ use std::{error::Error, result::Result};
 use clap::Parser;
 use owo_colors::OwoColorize;
 
-/// Very simple, almost hyper 'literal' eratosthenes-sieve.
+/// Very simple, almost hyper-'literal' eratosthenes-sieve.
 ///
 /// For quick results in debug mode : stop around 100_million searched.
 /// For quick Results in release mode: stop around 1_billion searched.
