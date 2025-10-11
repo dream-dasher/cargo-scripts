@@ -6,12 +6,13 @@ clap = { version = "4.5", features = ["derive"] }
 ---
 //! # Command xp w/ clap
 
-use clap::Parser;
 use std::process::{Command, Stdio};
+
+use clap::Parser;
 
 const DEFAULT_ARGUMENT: &str = "---Hi there, from default string.---\n";
 const DEFAULT_RUNNER: &str = "echo";
-fn main() -> core::result::Result<(), Box<dyn core::error::Error>>{
+fn main() -> core::result::Result<(), Box<dyn core::error::Error>> {
         let args = Args::parse();
         let runner = args.opt_runner.unwrap_or(DEFAULT_RUNNER.to_string());
         let argument = args.opt_argument.unwrap_or(DEFAULT_ARGUMENT.to_string());
@@ -36,6 +37,5 @@ fn main() -> core::result::Result<(), Box<dyn core::error::Error>>{
 struct Args {
         /// Optional string to print
         opt_argument: Option<String>,
-        opt_runner: Option<String>,
+        opt_runner:   Option<String>,
 }
-
