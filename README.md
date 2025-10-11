@@ -14,29 +14,34 @@ dep = { version = "x.y.z", features = ["f1", "f2"] }
 //then just regular rust
 ```
 
+
+```zsh
+FILE=script_name.rs`
+```
 - run directly
   - ```zsh
-    chmod u+x {{script_name}}.rs
-    ./{{script_name}}.rs
+    chmod u+x $FILE
+    ./$FILE
     ```
 - run via cargo
   - ```zsh
-    cargo +nightly -Zsscript {{sd_me: script_name}}.rs
+    cargo +nightly -Zscript $FILE
     ```
 - run other commands on script
   - ```zsh
-    cargo +nightly COMMAND *ARGS --manifest-path {{script_name}}.rs -Zscript
+    COMMAND=clippy
+    cargo +nightly $COMMAND *ARGS --manifest-path $FILE -Zscript
     ```
     - e.g.
     - ```zsh
-      cargo +nightly add derive_more --manifest-path some-script.rs -Zscript
+      cargo +nightly add derive_more --manifest-path $FILE -Zscript
       ```
 
 ## Ergonomics
 - `watchexec` allows diagnostic to be easily run while waiting on rust-analyzer support.
   - e.g.
   - ```zsh
-    watchexec --filter {{file}} 'clear; ./{{file}}'
+    watchexec --filter $FILE "clear; ./$FILE"
     ```
 - Compilation specs can be added in header.
   - Currently prefer: modifying debug mode runtime.
