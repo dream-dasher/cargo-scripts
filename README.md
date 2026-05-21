@@ -1,17 +1,29 @@
 # Cargo-Script
 
-
 ## TLDR
 
 ```rust
 #!/usr/bin/env -S cargo +nightly -Zscript
 ---
+package.edition = "2024"
 [dependencies]
 dep = { version = "x.y.z", features = ["f1", "f2"] }
 ---
-//! # comments
+//! # Docs
+//!
+//! run with:
+//! ```zsh
+//! SCRIPT=cscript.rs
+//! ARGS_S=('hi there, friend' -w -t)
+//! CMD=run
+//! ARGS_C=()
+//! cargo +nightly $CMD $ARGS_C -Zscript --manifest-path $SCRIPT -- $ARGS_S
+//! ```
 
-//then just regular rust
+fn main() -> Result<(), Box<dyn Error>> {
+    // ...
+    Ok()
+}
 ```
 
 
