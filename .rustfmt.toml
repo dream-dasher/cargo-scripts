@@ -1,0 +1,34 @@
+# rustfmt.toml
+# web description of options: https://rust-lang.github.io/rustfmt/?version=v1.6.0&search=
+#
+# NOTE: use *nightly* rust fmt
+#     ```zsh
+#     cargo +nightly fmt
+#     ```
+
+
+## --- meta-config ---
+style_edition = "2024"
+unstable_features = true  # `cargo +nightly fmt`
+ignore = []               # files for rustfmt to ignore
+# required_version        # specify rustfmt version requirement
+
+# ## --- regular-config ---
+enum_discrim_align_threshold = 20  # move distance to seek type alignment in enum discriminants
+struct_field_align_threshold = 20  # move distance to seek type alignment in struct fields
+combine_control_expr = false
+
+imports_layout = "Vertical"
+fn_params_layout = "Vertical"
+# width_heuristics = "Off"  <-- because not working (Wed May 27 2026)
+# fn_call_width = 0
+# attr_fn_like_width = 0
+struct_lit_width = 0
+struct_variant_width = 0
+array_width = 0
+chain_width = 0
+# single_line_if_else_max_width = 0
+
+match_arm_leading_pipes = "Always"
+
+tab_spaces = 7    # prime_num
